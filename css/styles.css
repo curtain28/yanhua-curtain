@@ -1,0 +1,97 @@
+body {
+    margin: 0;
+    overflow: hidden;
+    background: black;
+}
+
+canvas {
+    display: block;
+}
+
+.settings-panel {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    border-radius: 8px;
+    z-index: 1000;
+    min-width: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.settings-toggle {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 8px;
+    align-self: flex-end;
+}
+
+.settings-content {
+    display: none;
+    padding: 15px;
+    color: white;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.setting-item {
+    margin: 10px 0;
+    display: flex;
+    align-items: center;
+}
+
+.setting-item label {
+    width: 120px;
+    flex-shrink: 0;
+}
+
+.color-options {
+    display: flex;
+    align-items: center;
+}
+
+.color-options label {
+    margin-right: 10px;
+}
+
+.color-options input {
+    margin-right: 5px;
+}
+
+.sound-options {
+    display: flex;
+    align-items: center;
+}
+
+.sound-options label {
+    margin-right: 10px;
+}
+
+.sound-options input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+.sound-options input[type="range"] {
+    margin-left: 10px;
+    margin-right: 5px;
+}
+
+/* Media query for smaller screens */
+@media (max-width: 600px) {
+    .settings-panel {
+        min-width: 100%;
+        top: 0;
+        right: 0;
+        border-radius: 0;
+    }
+
+    .setting-item label {
+        width: auto;
+        margin-right: 10px;
+    }
+} 

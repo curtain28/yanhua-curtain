@@ -26,6 +26,14 @@ const explosionSound = document.getElementById('explosion-sound');
 // 获取开始提示元素
 const startPrompt = document.getElementById('start-prompt');
 
+function isMobileDevice() {
+    return window.innerWidth <= 768; // 简单判断是否为移动设备
+}
+
+function getTargetY() {
+    return Math.random() * (canvas.height / 3); // 目标位置限制在屏幕高度的上三分之一
+}
+
 // 粒子类
 class Particle {
     constructor(x, y, color, angle, speed, life) {
@@ -51,6 +59,8 @@ class Particle {
     }
 
     draw() {
+        if (isMobileDevice() && this.opacity <= 0) return; // 仅在移动设备上跳过不必要的绘制
+
         ctx.globalAlpha = this.opacity; // 设置全局不透明度
         ctx.fillStyle = this.color; // 设置填充颜色
 
@@ -154,9 +164,9 @@ class Firework {
 // 上升烟花类
 class RisingFirework {
     constructor(x, y, targetY) {
-        this.x = x;
+        this.x = Math.max(0, Math.min(x, canvas.width)); // 确保x坐标在屏幕范围内
         this.y = y;
-        this.targetY = targetY;
+        this.targetY = Math.max(0, Math.min(targetY, canvas.height / 3)); // 确保目标y坐标在屏幕上三分之一范围内
         this.speed = config.risingSpeed;
         this.color = `hsl(${Math.random() * 360}, 50%, 50%)`;
         this.trail = [];
@@ -236,7 +246,7 @@ function animate() {
     requestAnimationFrame(animate); // 请求下一帧动画
 }
 
-// 在自动��射和点击事件之前添加检查函数
+// 在自动射和点击事件之前添加检查函数
 function getEnabledColorTypes() {
     const colorTypes = [];
     if (config.colorfulEnabled) colorTypes.push('colorful');
@@ -244,15 +254,17 @@ function getEnabledColorTypes() {
     return colorTypes;
 }
 
-// 修改动发射函数
 function autoLaunch() {
-    if (fireworks.length + risingFireworks.length < config.maxFireworks) {
-        const fireworksToLaunch = Math.min(config.maxFireworks - (fireworks.length + risingFireworks.length), 3); // 每次最多发射3个
+    const maxFireworks = config.maxFireworks;
+    if (fireworks.length + risingFireworks.length < maxFireworks) {
+        const fireworksToLaunch = Math.min(maxFireworks - (fireworks.length + risingFireworks.length), 3);
         for (let i = 0; i < fireworksToLaunch; i++) {
+            const xPosition = Math.random() * canvas.width; // 发射位置限制在屏幕宽度内
+            const targetYPosition = getTargetY(); // 目标位置限制在屏幕高度内
             const risingFirework = new RisingFirework(
-                Math.random() * canvas.width,
+                xPosition,
                 canvas.height,
-                Math.random() * (canvas.height * 0.6)
+                targetYPosition
             );
             risingFireworks.push(risingFirework);
         }

@@ -90,6 +90,7 @@ canvas {
         max-width: none;
         right: 5%;
         font-size: 14px;
+        top: 10px;
     }
 
     .settings-content {
@@ -121,5 +122,25 @@ canvas {
     #start-prompt {
         font-size: 16px;
         padding: 10px;
+        width: 80%;
+        left: 10%;
+    }
+}
+
+/* 添加更小屏幕的样式 */
+@media screen and (max-width: 480px) {
+    .settings-panel {
+        width: 95%;
+        right: 2.5%;
+        font-size: 12px;
+    }
+
+    .setting-item label {
+        font-size: 12px;
+    }
+
+    #start-prompt {
+        font-size: 14px;
+        padding: 8px;
     }
 } 

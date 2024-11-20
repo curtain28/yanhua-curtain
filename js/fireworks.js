@@ -12,16 +12,16 @@ canvas.height = window.innerHeight;
 const config = {
     particleCount: 1000, // 粒子数量
     launchInterval: 500, // 发射间隔
-    risingSpeed: 10, // 上升速度
-    fadeSpeed: 4, // 衰减速度
+    risingSpeed: 15, // 上升速度
+    fadeSpeed: 2, // 衰减速度
     maxFireworks: 10, // 最大烟花数量
     soundEnabled: true, // 是否启用声音
     volume: 0.5, // 音量
     gravity: 0.05, // 重力
-    colorfulEnabled: true, // 默认启用多彩效果
+    colorfulEnabled: false, // 默认禁用多彩效果
     gradientEnabled: true, // 默认启用渐变效果
     heartEffectEnabled: true, // 是否启用心形效果
-    mixedEnabled: true, // 新增融合效果配置
+    mixedEnabled: false, // 默认禁用融合效果
 };
 
 // 获取爆炸声音元素
@@ -199,7 +199,7 @@ class RisingFirework {
             if (config.soundEnabled) {
                 const sound = explosionSound.cloneNode(); // 克隆声音节点
                 sound.volume = config.volume; // 设置音量
-                sound.play().catch(e => console.log('音频播放失败:', e)); // 播放��音
+                sound.play().catch(e => console.log('音频播放失败:', e)); // 播放音
             }
             this.soundPlayed = true; // 标记声音已播放
         }

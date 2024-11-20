@@ -38,12 +38,12 @@
             <div class="setting-item">
                 <label>上升速度:</label>
                 <input type="range" id="risingSpeed" min="5" max="20" value="10" step="1">
-                <span id="risingSpeedValue">10</span>
+                <span id="risingSpeedValue">15</span>
             </div>
             <div class="setting-item">
                 <label>粒子消散速度:</label>
-                <input type="range" id="fadeSpeed" min="1" max="10" value="4" step="0.5">
-                <span id="fadeSpeedValue">4</span>
+                <input type="range" id="fadeSpeed" min="1" max="10" value="2" step="0.5">
+                <span id="fadeSpeedValue">2</span>
             </div>
             <div class="setting-item">
                 <label>最大烟花数量:</label>
@@ -57,11 +57,11 @@
             </div>
             <div class="setting-item color-options">
                 <label>颜色样式:</label>
-                <input type="checkbox" id="colorfulToggle" checked
+                <input type="checkbox" id="colorfulToggle" 
                        onclick="if(!this.checked || !gradientToggle.checked) mixedToggle.checked = false"> 彩色
                 <input type="checkbox" id="gradientToggle" checked
                        onclick="if(!this.checked || !colorfulToggle.checked) mixedToggle.checked = false"> 渐变色
-                <input type="checkbox" id="mixedToggle" checked
+                <input type="checkbox" id="mixedToggle" 
                        onclick="return colorfulToggle.checked && gradientToggle.checked"> 融合效果
             </div>
             <div class="setting-item sound-options">

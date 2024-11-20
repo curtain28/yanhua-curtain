@@ -110,7 +110,7 @@ class Firework {
     }
 
     init() {
-        const gradientColors = this.isGradient ? randomGradientColor() : null; // 获取渐变颜色
+        const gradientColors = randomGradientColor(); // 始终获取渐变颜色
         for (let i = 0; i < config.particleCount; i++) {
             const angle = Math.random() * Math.PI * 2; // 随机角度
             const speed = Math.random() * 2 + 0.5; // 随机速度
@@ -119,15 +119,36 @@ class Firework {
             const offsetY = (Math.random() - 0.5) * 20; // 随机y偏移
             let particleColor;
 
+            // 随机选择一种颜色类型
+            const colorOptions = [];
+            if (this.isColorful && config.colorfulEnabled) {
+                colorOptions.push('colorful');
+            }
             if (this.isMonochrome && config.monochromeEnabled) {
-                particleColor = this.color; // 单色
-            } else if (this.isGradient && config.gradientEnabled) {
-                const t = i / config.particleCount;
-                particleColor = `hsl(${(1 - t) * parseInt(gradientColors.startColor.match(/\d+/)[0]) + t * parseInt(gradientColors.endColor.match(/\d+/)[0])}, 100%, 50%)`; // 渐变色
-            } else if (this.isColorful && config.colorfulEnabled) {
-                particleColor = randomColor(); // 随机颜色
-            } else {
-                particleColor = 'rgba(255, 255, 255, 0)'; // 默认透明颜色
+                colorOptions.push('monochrome');
+            }
+            if (this.isGradient && config.gradientEnabled) {
+                colorOptions.push('gradient');
+            }
+
+            const selectedColorType = colorOptions[Math.floor(Math.random() * colorOptions.length)];
+
+            switch (selectedColorType) {
+                case 'colorful':
+                    particleColor = randomColor(); // 随机颜色
+                    break;
+                case 'monochrome':
+                    particleColor = this.color; // 单色
+                    break;
+                case 'gradient':
+                    const t = i / config.particleCount;
+                    particleColor = `hsl(${(1 - t) * parseInt(gradientColors.startColor.match(/\d+/)[0]) + t * parseInt(gradientColors.endColor.match(/\d+/)[0])}, 100%, 50%)`; // 渐变色
+                    break;
+                default:
+                    // 默认使用渐变色
+                    const defaultT = i / config.particleCount;
+                    particleColor = `hsl(${(1 - defaultT) * parseInt(gradientColors.startColor.match(/\d+/)[0]) + defaultT * parseInt(gradientColors.endColor.match(/\d+/)[0])}, 100%, 50%)`;
+                    break;
             }
 
             this.particles.push(new Particle(this.x + offsetX, this.y + offsetY, particleColor, angle, speed, life)); // 创建粒子
@@ -307,7 +328,7 @@ settingsToggle.addEventListener('click', () => {
 
 // 更新值显示
 function updateValueDisplay(input, valueId) {
-    document.getElementById(valueId).textContent = input.value; // 更新显示的值
+    document.getElementById(valueId).textContent = input.value; // 更新显的值
 }
 
 // 粒子数量输入事件监听
@@ -321,7 +342,7 @@ launchIntervalInput.addEventListener('input', (e) => {
     config.launchInterval = parseInt(e.target.value); // 更新发射间隔
     updateValueDisplay(launchIntervalInput, 'launchIntervalValue'); // 更新显示
     clearInterval(autoLaunchInterval); // 清除自动发射间隔
-    autoLaunchInterval = setInterval(autoLaunch, config.launchInterval); // 设置新的自动发射间隔
+    autoLaunchInterval = setInterval(autoLaunch, config.launchInterval); // 置新的自动发射间隔
 });
 
 // 上升速度输入事件监听

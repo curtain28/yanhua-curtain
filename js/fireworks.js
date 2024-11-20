@@ -127,7 +127,7 @@ class Firework {
             } else if (this.isColorful && config.colorfulEnabled) {
                 particleColor = randomColor(); // 随机颜色
             } else {
-                particleColor = `hsl(${Math.random() * 360}, 50%, 50%)`; // 默认颜色
+                particleColor = 'rgba(255, 255, 255, 0)'; // 默认透明颜色
             }
 
             this.particles.push(new Particle(this.x + offsetX, this.y + offsetY, particleColor, angle, speed, life)); // 创建粒子
@@ -257,13 +257,12 @@ function autoLaunch() {
     }
 }
 
-// 触摸事件监听
-canvas.addEventListener('touchstart', (e) => {
+// 点击事件监听
+canvas.addEventListener('click', (e) => {
     e.preventDefault(); // 阻止默认行为
-    const touch = e.touches[0]; // 获取第一个触摸点
     const rect = canvas.getBoundingClientRect(); // 获取画布边界
-    const clickX = touch.clientX - rect.left; // 计算点击x坐标
-    const clickY = touch.clientY - rect.top; // 计算点击y坐标
+    const clickX = e.clientX - rect.left; // 计算点击x坐标
+    const clickY = e.clientY - rect.top; // 计算点击y坐标
 
     if (fireworks.length + risingFireworks.length < config.maxFireworks + 5) {
         const isColorful = config.colorfulEnabled && Math.random() > 0.5; // 随机决定是否多彩

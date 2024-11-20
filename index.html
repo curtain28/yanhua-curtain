@@ -44,9 +44,12 @@
             </div>
             <div class="setting-item color-options">
                 <label>颜色样式:</label>
-                <input type="checkbox" id="colorfulToggle"> 彩色
-                <input type="checkbox" id="gradientToggle" checked> 渐变色
-                <input type="checkbox" id="monochromeToggle"> 单色
+                <input type="checkbox" id="colorfulToggle" checked
+                       onclick="if(!this.checked || !gradientToggle.checked) mixedToggle.checked = false"> 彩色
+                <input type="checkbox" id="gradientToggle" checked
+                       onclick="if(!this.checked || !colorfulToggle.checked) mixedToggle.checked = false"> 渐变色
+                <input type="checkbox" id="mixedToggle" checked
+                       onclick="return colorfulToggle.checked && gradientToggle.checked"> 融合效果
             </div>
             <div class="setting-item sound-options">
                 <label>音效:</label>

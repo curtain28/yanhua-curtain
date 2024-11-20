@@ -236,7 +236,7 @@ function animate() {
     requestAnimationFrame(animate); // 请求下一帧动画
 }
 
-// 在自动发射和点击事件之前添加检查函数
+// 在自动��射和点击事件之前添加检查函数
 function getEnabledColorTypes() {
     const colorTypes = [];
     if (config.colorfulEnabled) colorTypes.push('colorful');
@@ -247,15 +247,17 @@ function getEnabledColorTypes() {
 // 修改动发射函数
 function autoLaunch() {
     if (fireworks.length + risingFireworks.length < config.maxFireworks) {
-        const risingFirework = new RisingFirework(
-            Math.random() * canvas.width,
-            canvas.height,
-            Math.random() * (canvas.height * 0.6)
-        );
-        risingFireworks.push(risingFirework);
+        const fireworksToLaunch = Math.min(config.maxFireworks - (fireworks.length + risingFireworks.length), 3); // 每次最多发射3个
+        for (let i = 0; i < fireworksToLaunch; i++) {
+            const risingFirework = new RisingFirework(
+                Math.random() * canvas.width,
+                canvas.height,
+                Math.random() * (canvas.height * 0.6)
+            );
+            risingFireworks.push(risingFirework);
+        }
     }
 }
-
 // 修改点击事件监听器
 canvas.addEventListener('click', (e) => {
     e.preventDefault();
@@ -445,3 +447,4 @@ settingsToggle.addEventListener('touchstart', (e) => {
 });
 
 // 添加meta标签（在HTML的head部分）
+

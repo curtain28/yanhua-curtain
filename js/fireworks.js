@@ -199,7 +199,7 @@ class RisingFirework {
             if (config.soundEnabled) {
                 const sound = explosionSound.cloneNode(); // 克隆声音节点
                 sound.volume = config.volume; // 设置音量
-                sound.play().catch(e => console.log('音频播放失败:', e)); // 播放声音
+                sound.play().catch(e => console.log('音频播放失败:', e)); // 播放��音
             }
             this.soundPlayed = true; // 标记声音已播放
         }
@@ -354,7 +354,7 @@ settingsToggle.addEventListener('click', () => {
 
 // 更新值显示
 function updateValueDisplay(input, valueId) {
-    document.getElementById(valueId).textContent = input.value; // 更新显��值
+    document.getElementById(valueId).textContent = input.value; // 更新显值
 }
 
 // 粒子数量输入事件监听
@@ -448,3 +448,84 @@ window.addEventListener('resize', () => {
     canvas.width = window.innerWidth; // 更新画布宽度
     canvas.height = window.innerHeight; // 更新画布高度
 });
+
+// 修改事件监听器以支持触摸事件
+canvas.addEventListener('touchstart', handleTouch);
+canvas.addEventListener('click', handleClick);
+
+// 添加触摸事件处理函数
+function handleTouch(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const rect = canvas.getBoundingClientRect();
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    createFirework(x, y);
+}
+
+// 点击事件处理函数
+function handleClick(e) {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    createFirework(x, y);
+}
+
+// 抽取创建烟花的逻辑到单独的函数
+function createFirework(x, y) {
+    const enabledColors = getEnabledColorTypes();
+    if (enabledColors.length === 0) return;
+
+    if (fireworks.length + risingFireworks.length < config.maxFireworks + 5) {
+        const selectedTypes = {
+            isColorful: enabledColors.includes('colorful'),
+            isGradient: enabledColors.includes('gradient')
+        };
+
+        const risingFirework = new RisingFirework(
+            x,
+            canvas.height,
+            y,
+            selectedTypes.isColorful,
+            selectedTypes.isGradient
+        );
+        risingFireworks.push(risingFirework);
+    }
+}
+
+// 添加视口调整逻辑
+function resizeCanvas() {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const dpr = window.devicePixelRatio || 1;
+
+    canvas.width = width * dpr;
+    canvas.height = height * dpr;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    ctx.scale(dpr, dpr);
+}
+
+// 监听视口变化
+window.addEventListener('resize', resizeCanvas);
+window.addEventListener('orientationchange', resizeCanvas);
+
+// 初始化时调用一次
+resizeCanvas();
+
+// 添加阻止默认滚动行为
+document.body.addEventListener('touchmove', (e) => {
+    if (e.target === canvas) {
+        e.preventDefault();
+    }
+}, { passive: false });
+
+// 修改设置面板的触摸事件处理
+settingsToggle.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    const isHidden = settingsContent.style.display === 'none' || !settingsContent.style.display;
+    settingsContent.style.display = isHidden ? 'block' : 'none';
+});
+
+// 添加meta标签（在HTML的head部分）

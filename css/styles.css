@@ -94,4 +94,45 @@ canvas {
         width: auto;
         margin-right: 10px;
     }
+}
+
+/* 添加移动端样式 */
+@media screen and (max-width: 768px) {
+    .settings-panel {
+        width: 90%;
+        max-width: none;
+        right: 5%;
+        font-size: 14px;
+    }
+
+    .settings-content {
+        padding: 10px;
+    }
+
+    .setting-item {
+        margin: 8px 0;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .setting-item label {
+        margin-bottom: 5px;
+    }
+
+    .setting-item input[type="range"] {
+        width: 100%;
+    }
+
+    #settings-toggle {
+        width: 40px;
+        height: 40px;
+        font-size: 20px;
+        right: 10px;
+        top: 10px;
+    }
+
+    #start-prompt {
+        font-size: 16px;
+        padding: 10px;
+    }
 } 

@@ -50,19 +50,6 @@ canvas {
     flex-shrink: 0;
 }
 
-.color-options {
-    display: flex;
-    align-items: center;
-}
-
-.color-options label {
-    margin-right: 10px;
-}
-
-.color-options input {
-    margin-right: 5px;
-}
-
 .sound-options {
     display: flex;
     align-items: center;

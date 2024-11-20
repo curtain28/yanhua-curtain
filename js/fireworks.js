@@ -10,18 +10,15 @@ canvas.height = window.innerHeight;
 
 // 配置参数
 const config = {
-    particleCount: 1000, // 粒子数量
-    launchInterval: 500, // 发射间隔
-    risingSpeed: 15, // 上升速度
+    particleCount: 500, // 粒子数量
+    launchInterval: 300, // 发射间隔
+    risingSpeed: 20, // 上升速度
     fadeSpeed: 2, // 衰减速度
     maxFireworks: 10, // 最大烟花数量
     soundEnabled: true, // 是否启用声音
     volume: 0.5, // 音量
     gravity: 0.05, // 重力
-    colorfulEnabled: false, // 默认禁用多彩效果
-    gradientEnabled: true, // 默认启用渐变效果
     heartEffectEnabled: true, // 是否启用心形效果
-    mixedEnabled: false, // 默认禁用融合效果
 };
 
 // 获取爆炸声音元素
@@ -65,7 +62,7 @@ class Particle {
             ctx.fill(); // 填充
 
             ctx.beginPath(); // 开始路径
-            ctx.moveTo(this.x, this.y); // 移动到粒子位置
+            ctx.moveTo(this.x, this.y); // 移动到粒子位
             for (let i = this.history.length - 1; i >= 0; i--) {
                 const point = this.history[i];
                 ctx.lineTo(point.x, point.y); // 绘制历史轨迹
@@ -89,44 +86,31 @@ class Particle {
     }
 }
 
-// 生成随机渐变颜色
+// 添加生成随机渐变颜色的函数
 function randomGradientColor() {
-    const startColor = `hsl(${Math.random() * 360}, 100%, 50%)`; // 起始颜色
-    const endColor = `hsl(${Math.random() * 360}, 100%, 50%)`; // 结束颜色
-    return { startColor, endColor }; // 返回颜色对象
+    // 生成一个随机色相
+    const baseHue = Math.random() * 360;
+    // 生成一个接近的色相，差异在150度以内
+    const closeHue = (baseHue + (Math.random() * 150 - 15)) % 360;
+
+    return {
+        startColor: `hsl(${baseHue}, 100%, 50%)`,
+        endColor: `hsl(${closeHue}, 100%, 50%)`
+    };
 }
 
 // 烟花类
 class Firework {
-    constructor(x, y, color, isColorful = false, isGradient = false) {
-        this.x = x; // 烟花x坐标
-        this.y = y; // 烟花y坐标
-        this.color = color; // 烟花颜色
-        this.isColorful = isColorful; // 是否多彩
-        this.isGradient = isGradient; // 是否渐变
-        this.particles = []; // 粒子数组
-        
-        // 检查是否有启用的颜色类型
-        const enabledColors = getEnabledColorTypes();
-        if (enabledColors.length > 0) {
-            this.init();
-        }
+    constructor(x, y) {
+        this.x = x;
+        this.y = y;
+        this.particles = [];
+        this.init();
     }
 
     init() {
+        // 为整个烟花生成一对固定的渐变颜色
         const gradientColors = randomGradientColor();
-        let colorType;
-
-        // 确定可用的颜色类型
-        const availableTypes = [];
-        if (this.isGradient && config.gradientEnabled) availableTypes.push('gradient');
-        if (this.isColorful && config.colorfulEnabled) availableTypes.push('colorful');
-        if (config.mixedEnabled) availableTypes.push('mixed');
-
-        if (availableTypes.length === 0) return;
-
-        // 随机选择一种颜色类型
-        colorType = availableTypes[Math.floor(Math.random() * availableTypes.length)];
 
         for (let i = 0; i < config.particleCount; i++) {
             const angle = Math.random() * Math.PI * 2;
@@ -135,27 +119,19 @@ class Firework {
             const offsetX = (Math.random() - 0.5) * 20;
             const offsetY = (Math.random() - 0.5) * 20;
 
-            let particleColor;
-            switch (colorType) {
-                case 'colorful':
-                    particleColor = randomColor();
-                    break;
-                case 'gradient':
-                    const t = i / config.particleCount;
-                    particleColor = `hsl(${(1 - t) * parseInt(gradientColors.startColor.match(/\d+/)[0]) + 
-                        t * parseInt(gradientColors.endColor.match(/\d+/)[0])}, 100%, 50%)`;
-                    break;
-                case 'mixed':
-                    // 对每个粒子随机选择是使用彩色还是渐变色
-                    if (Math.random() < 0.5) {
-                        particleColor = randomColor();
-                    } else {
-                        const t = i / config.particleCount;
-                        particleColor = `hsl(${(1 - t) * parseInt(gradientColors.startColor.match(/\d+/)[0]) + 
-                            t * parseInt(gradientColors.endColor.match(/\d+/)[0])}, 100%, 50%)`;
-                    }
-                    break;
+            // 简单的双色渐变
+            const t = i / config.particleCount;
+            const startHue = parseInt(gradientColors.startColor.match(/\d+/)[0]);
+            const endHue = parseInt(gradientColors.endColor.match(/\d+/)[0]);
+            
+            // 计算最短路径的色相差值
+            let hueDiff = endHue - startHue;
+            if (Math.abs(hueDiff) > 180) {
+                hueDiff = hueDiff > 0 ? hueDiff - 360 : hueDiff + 360;
             }
+            
+            const hue = (startHue + hueDiff * t + 360) % 360;
+            const particleColor = `hsl(${hue}, 100%, 50%)`;
 
             this.particles.push(new Particle(this.x + offsetX, this.y + offsetY, particleColor, angle, speed, life));
         }
@@ -163,68 +139,66 @@ class Firework {
 
     update() {
         this.particles.forEach((particle, index) => {
-            particle.update(); // 更新粒子
+            particle.update();
             if (particle.life <= 0) {
-                this.particles.splice(index, 1); // 移除寿命结束的粒子
+                this.particles.splice(index, 1);
             }
         });
     }
 
     draw() {
-        this.particles.forEach(particle => particle.draw()); // 绘制粒子
+        this.particles.forEach(particle => particle.draw());
     }
 }
 
 // 上升烟花类
 class RisingFirework {
-    constructor(x, y, targetY, isColorful = false, isGradient = false) {
-        this.x = x; // 烟花x坐标
-        this.y = y; // 烟花y坐标
-        this.targetY = targetY; // 目标y坐标
-        this.speed = config.risingSpeed; // 上升速度
-        this.color = `hsl(${Math.random() * 360}, 50%, 50%)`; // 烟花颜色
-        this.trail = []; // 轨迹数组
-        this.soundPlayed = false; // 声音播放标志
-        this.isColorful = isColorful; // 是否多彩
-        this.isGradient = isGradient; // 是否渐变
+    constructor(x, y, targetY) {
+        this.x = x;
+        this.y = y;
+        this.targetY = targetY;
+        this.speed = config.risingSpeed;
+        this.color = `hsl(${Math.random() * 360}, 50%, 50%)`;
+        this.trail = [];
+        this.soundPlayed = false;
     }
 
     update() {
-        this.trail.push({ x: this.x, y: this.y }); // 记录轨迹
-        if (this.trail.length > 3) this.trail.shift(); // 保持轨迹长度
+        this.trail.push({ x: this.x, y: this.y });
+        if (this.trail.length > 3) this.trail.shift();
 
-        this.y -= this.speed; // 更新y坐标
+        this.y -= this.speed;
 
         if (!this.soundPlayed && this.y - this.targetY <= this.speed * 25) {
             if (config.soundEnabled) {
-                const sound = explosionSound.cloneNode(); // 克隆声音节点
-                sound.volume = config.volume; // 设置音量
-                sound.play().catch(e => console.log('音频播放失败:', e)); // 播放音
+                const sound = explosionSound.cloneNode();
+                sound.volume = config.volume;
+                sound.play().catch(e => console.log('音频播放失败:', e));
             }
-            this.soundPlayed = true; // 标记声音已播放
+            this.soundPlayed = true;
         }
 
         if (this.y <= this.targetY) {
-            fireworks.push(new Firework(this.x, this.y, this.color, this.isColorful, this.isGradient)); // 创建烟花
-            return true; // 返回true表示到达目标
+            fireworks.push(new Firework(this.x, this.y));
+            return true;
         }
-        return false; // 返回false表示未到达目标
+        return false;
     }
 
     draw() {
-        ctx.beginPath(); // 开始路径
-        ctx.moveTo(this.x, this.y); // 移动到烟花位置
+        ctx.beginPath();
+        ctx.moveTo(this.x, this.y);
         for (const point of this.trail) {
-            ctx.lineTo(point.x, point.y); // 绘制轨迹
+            ctx.lineTo(point.x, point.y);
         }
-        ctx.strokeStyle = this.color; // 设置描边颜色
-        ctx.lineWidth = 1; // 设置线宽
-        ctx.stroke(); // 描边
+        ctx.strokeStyle = this.color;
+        ctx.lineWidth = 1;
+        ctx.stroke();
 
-        ctx.beginPath(); // 开始路径
-        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2); // 绘制圆形
-        ctx.fillStyle = this.color; // 设置填充颜色
-        ctx.fill(); // 填充
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = this.color;
+        ctx.fill();
     }
 }
 
@@ -270,23 +244,13 @@ function getEnabledColorTypes() {
     return colorTypes;
 }
 
-// 修改自动发射函数
+// 修改动发射函数
 function autoLaunch() {
-    const enabledColors = getEnabledColorTypes();
-    if (enabledColors.length === 0) return; // 如果没有启用的颜色类型，不生成烟花
-
     if (fireworks.length + risingFireworks.length < config.maxFireworks) {
-        const selectedTypes = {
-            isColorful: enabledColors.includes('colorful'),
-            isGradient: enabledColors.includes('gradient')
-        };
-
         const risingFirework = new RisingFirework(
             Math.random() * canvas.width,
             canvas.height,
-            Math.random() * (canvas.height * 0.6),
-            selectedTypes.isColorful,
-            selectedTypes.isGradient
+            Math.random() * (canvas.height * 0.6)
         );
         risingFireworks.push(risingFirework);
     }
@@ -311,9 +275,7 @@ canvas.addEventListener('click', (e) => {
         const risingFirework = new RisingFirework(
             clickX,
             canvas.height,
-            clickY,
-            selectedTypes.isColorful,
-            selectedTypes.isGradient
+            clickY
         );
         risingFireworks.push(risingFirework);
     }
@@ -340,11 +302,7 @@ const risingSpeedInput = document.getElementById('risingSpeed');
 const fadeSpeedInput = document.getElementById('fadeSpeed');
 const maxFireworksInput = document.getElementById('maxFireworks');
 const gravityInput = document.getElementById('gravity');
-const colorfulToggle = document.getElementById('colorfulToggle');
-const gradientToggle = document.getElementById('gradientToggle');
-const monochromeToggle = document.getElementById('monochromeToggle');
 const heartEffectToggle = document.getElementById('heartEffectToggle');
-const mixedToggle = document.getElementById('mixedToggle');
 
 // 设置切换事监听
 settingsToggle.addEventListener('click', () => {
@@ -366,12 +324,12 @@ particleCountInput.addEventListener('input', (e) => {
 // 发射间隔输入事件监听
 launchIntervalInput.addEventListener('input', (e) => {
     config.launchInterval = parseInt(e.target.value); // 更新发射间隔
-    updateValueDisplay(launchIntervalInput, 'launchIntervalValue'); // 更新显示
+    updateValueDisplay(launchIntervalInput, 'launchIntervalValue'); // 新显示
     clearInterval(autoLaunchInterval); // 清除自动发射间隔
     autoLaunchInterval = setInterval(autoLaunch, config.launchInterval); // 置新的自动发射间隔
 });
 
-// 上升速度输入事件监听
+// 升速度输入事件监听
 risingSpeedInput.addEventListener('input', (e) => {
     config.risingSpeed = parseInt(e.target.value); // 更新上升速度
     updateValueDisplay(risingSpeedInput, 'risingSpeedValue'); // 更新显示
@@ -395,37 +353,9 @@ gravityInput.addEventListener('input', (e) => {
     updateValueDisplay(gravityInput, 'gravityValue'); // 更新显示
 });
 
-// 多彩切换事件监听
-colorfulToggle.addEventListener('change', (e) => {
-    config.colorfulEnabled = e.target.checked;
-    if (!e.target.checked || !gradientToggle.checked) {
-        config.mixedEnabled = false;
-        mixedToggle.checked = false;
-    }
-});
-
-// 渐变切换事件监听
-gradientToggle.addEventListener('change', (e) => {
-    config.gradientEnabled = e.target.checked;
-    if (!e.target.checked || !colorfulToggle.checked) {
-        config.mixedEnabled = false;
-        mixedToggle.checked = false;
-    }
-});
-
 // 心形效果切换事件监听
 heartEffectToggle.addEventListener('change', (e) => {
     config.heartEffectEnabled = e.target.checked; // 更新心形效果启用状态
-});
-
-// 融合效果切换事件监听
-mixedToggle.addEventListener('change', (e) => {
-    if (colorfulToggle.checked && gradientToggle.checked) {
-        config.mixedEnabled = e.target.checked;
-    } else {
-        config.mixedEnabled = false;
-        e.target.checked = false;
-    }
 });
 
 // 获取声音相关元素
@@ -437,10 +367,10 @@ soundToggle.addEventListener('change', (e) => {
     config.soundEnabled = e.target.checked; // 更新声音启用状态
 });
 
-// 声音音量输入事件监听
+// 声音量输入事件监听
 soundVolume.addEventListener('input', (e) => {
     config.volume = parseFloat(e.target.value); // 更新音量
-    updateValueDisplay(soundVolume, 'soundVolumeValue'); // 更新显示
+    updateValueDisplay(soundVolume, 'soundVolumeValue'); // 更新显
 });
 
 // 窗口大小改变事件监听
@@ -474,22 +404,8 @@ function handleClick(e) {
 
 // 抽取创建烟花的逻辑到单独的函数
 function createFirework(x, y) {
-    const enabledColors = getEnabledColorTypes();
-    if (enabledColors.length === 0) return;
-
     if (fireworks.length + risingFireworks.length < config.maxFireworks + 5) {
-        const selectedTypes = {
-            isColorful: enabledColors.includes('colorful'),
-            isGradient: enabledColors.includes('gradient')
-        };
-
-        const risingFirework = new RisingFirework(
-            x,
-            canvas.height,
-            y,
-            selectedTypes.isColorful,
-            selectedTypes.isGradient
-        );
+        const risingFirework = new RisingFirework(x, canvas.height, y);
         risingFireworks.push(risingFirework);
     }
 }

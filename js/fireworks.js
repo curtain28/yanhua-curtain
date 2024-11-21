@@ -19,6 +19,7 @@ const config = {
     volume: 0.5, // 音量
     gravity: 0.05, // 重力
     heartEffectEnabled: true, // 是否启用心形效果
+    interactionTimeout: 3000, // 用户交互超时时间(毫秒)
 };
 
 // 获取爆炸声音元素
@@ -31,7 +32,7 @@ function isMobileDevice() {
 }
 
 function getTargetY() {
-    return Math.random() * (canvas.height / 3); // 目标位置限制在屏幕高度的上三分之一
+    return Math.random() * (canvas.height / 3); // 目标位置限制在屏高度的上三分之一
 }
 
 // 粒子类
@@ -231,9 +232,8 @@ function randomColor() {
 
 // 添加新的变量来跟踪用户交互
 let userInteractionTimer = null;
-const INTERACTION_TIMEOUT = 3000; // 用户停止点击3秒后恢复自动发射
-let lastClickTime = Date.now();
 const CLICK_COOLDOWN = 100; // 降低点击冷却时间到100ms
+let lastClickTime = Date.now();
 
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // 清除画布
@@ -430,14 +430,11 @@ function createFirework(x, y) {
     lastClickTime = currentTime;
 
     if (fireworks.length + risingFireworks.length < config.maxFireworks + 5) {
-        // 清除当前的自动发射
         clearInterval(autoLaunchInterval);
-        // 清除之前的交互计时器
         if (userInteractionTimer) {
             clearTimeout(userInteractionTimer);
         }
         
-        // 创建点击位置的烟花
         const risingFirework = new RisingFirework(
             x,
             canvas.height,
@@ -446,11 +443,9 @@ function createFirework(x, y) {
         );
         risingFireworks.push(risingFirework);
 
-        // 设置新的交互计时器
         userInteractionTimer = setTimeout(() => {
-            // 用户停止点击后恢复自动发射
             autoLaunchInterval = setInterval(autoLaunch, config.launchInterval);
-        }, INTERACTION_TIMEOUT);
+        }, config.interactionTimeout);
     }
 }
 
@@ -467,7 +462,7 @@ function resizeCanvas() {
     ctx.scale(dpr, dpr);
 }
 
-// 监听视口变化
+// 监听视口化
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('orientationchange', resizeCanvas);
 
@@ -489,4 +484,25 @@ settingsToggle.addEventListener('touchstart', (e) => {
 });
 
 // 添加meta标签（在HTML的head部分）
+
+// 获取交互超时时间输入元素
+const interactionTimeoutInput = document.getElementById('interactionTimeout');
+
+// 初始化设置值
+function initializeSettings() {
+    // ... existing settings initialization ...
+    
+    // 设置交互超时时间的初始值
+    interactionTimeoutInput.value = config.interactionTimeout;
+    updateValueDisplay(interactionTimeoutInput, 'interactionTimeoutValue');
+    
+    // 添加事件监听
+    interactionTimeoutInput.addEventListener('input', (e) => {
+        config.interactionTimeout = parseInt(e.target.value);
+        updateValueDisplay(interactionTimeoutInput, 'interactionTimeoutValue');
+    });
+}
+
+// 确保在页面加载时调用初始化函数
+document.addEventListener('DOMContentLoaded', initializeSettings);
 

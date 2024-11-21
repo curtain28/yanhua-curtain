@@ -95,6 +95,8 @@ canvas {
 
     .settings-content {
         padding: 10px;
+        transform: scale(0.6);
+        transform-origin: top left;
     }
 
     .setting-item {

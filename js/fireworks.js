@@ -163,23 +163,27 @@ class Firework {
 
 // 上升烟花类
 class RisingFirework {
-    constructor(x, y, targetY) {
-        this.x = Math.max(0, Math.min(x, canvas.width)); // 确保x坐标在屏幕范围内
+    constructor(x, y, targetY, speed) {
+        this.x = Math.max(0, Math.min(x, canvas.width));
         this.y = y;
-        this.targetY = Math.max(0, Math.min(targetY, canvas.height / 3)); // 确保目标y坐标在屏幕上三分之一范围内
-        this.speed = config.risingSpeed;
+        this.targetY = Math.max(0, Math.min(targetY, canvas.height / 3));
+        this.speed = speed || config.risingSpeed;
         this.color = `hsl(${Math.random() * 360}, 50%, 50%)`;
         this.trail = [];
         this.soundPlayed = false;
+        
+        // 预计算一些值以提高性能
+        this.trailLength = 3;
+        this.soundTriggerDistance = this.speed * 25;
     }
 
     update() {
         this.trail.push({ x: this.x, y: this.y });
-        if (this.trail.length > 3) this.trail.shift();
+        if (this.trail.length > this.trailLength) this.trail.shift();
 
         this.y -= this.speed;
 
-        if (!this.soundPlayed && this.y - this.targetY <= this.speed * 25) {
+        if (!this.soundPlayed && this.y - this.targetY <= this.soundTriggerDistance) {
             if (config.soundEnabled) {
                 const sound = explosionSound.cloneNode();
                 sound.volume = config.volume;
@@ -225,8 +229,11 @@ function randomColor() {
     return `rgb(${r},${g},${b})`; // 返回RGB颜色
 }
 
-let lastClickTime = 0; // 上次点击时间
-const CLICK_COOLDOWN = 500; // 点击冷却时间
+// 添加新的变量来跟踪用户交互
+let userInteractionTimer = null;
+const INTERACTION_TIMEOUT = 3000; // 用户停止点击3秒后恢复自动发射
+let lastClickTime = Date.now();
+const CLICK_COOLDOWN = 100; // 降低点击冷却时间到100ms
 
 function animate() {
     ctx.clearRect(0, 0, canvas.width, canvas.height); // 清除画布
@@ -416,11 +423,34 @@ function handleClick(e) {
     createFirework(x, y);
 }
 
-// 抽取创建烟花的逻辑到单独的函数
+// 抽创建烟花的逻辑到单独的函数
 function createFirework(x, y) {
+    const currentTime = Date.now();
+    if (currentTime - lastClickTime < CLICK_COOLDOWN) return;
+    lastClickTime = currentTime;
+
     if (fireworks.length + risingFireworks.length < config.maxFireworks + 5) {
-        const risingFirework = new RisingFirework(x, canvas.height, y);
+        // 清除当前的自动发射
+        clearInterval(autoLaunchInterval);
+        // 清除之前的交互计时器
+        if (userInteractionTimer) {
+            clearTimeout(userInteractionTimer);
+        }
+        
+        // 创建点击位置的烟花
+        const risingFirework = new RisingFirework(
+            x,
+            canvas.height,
+            y,
+            config.risingSpeed * 1.2
+        );
         risingFireworks.push(risingFirework);
+
+        // 设置新的交互计时器
+        userInteractionTimer = setTimeout(() => {
+            // 用户停止点击后恢复自动发射
+            autoLaunchInterval = setInterval(autoLaunch, config.launchInterval);
+        }, INTERACTION_TIMEOUT);
     }
 }
 

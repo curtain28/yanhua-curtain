@@ -28,7 +28,7 @@ const explosionSound = document.getElementById('explosion-sound');
 const startPrompt = document.getElementById('start-prompt');
 
 function isMobileDevice() {
-    return window.innerWidth <= 768; // 简单判断是否为移动设备
+    return window.innerWidth <= 1450; // 简单判断是否为移动设备
 }
 
 function getTargetY() {

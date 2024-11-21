@@ -84,7 +84,7 @@ canvas {
 }
 
 /* 添加移动端样式 */
-@media screen and (max-width: 768px) {
+@media screen and (max-width: 1450px) {
     .settings-panel {
         width: 90%;
         max-width: none;

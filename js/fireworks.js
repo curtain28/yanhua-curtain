@@ -32,7 +32,7 @@ function isMobileDevice() {
 }
 
 function getTargetY() {
-    return Math.random() * (canvas.height / 3); // 目标位置限制在屏高度的上三分之一
+    return Math.random() * (canvas.height / 3); // 目标位置限制在屏高度���三分之一
 }
 
 // 粒子类
@@ -162,7 +162,33 @@ class Firework {
     }
 }
 
-// 上升烟花类
+// 添加尾迹粒子类
+class TrailParticle {
+    constructor(x, y, color) {
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.alpha = 1;
+        this.size = Math.random() * 2 + 1;
+    }
+
+    update() {
+        this.alpha *= 0.92; // 控制粒子消失速度
+        this.size *= 0.96; // 控制粒子大小变化
+    }
+
+    draw() {
+        ctx.save();
+        ctx.globalAlpha = this.alpha;
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+    }
+}
+
+// 修改 RisingFirework 类
 class RisingFirework {
     constructor(x, y, targetY, speed) {
         this.x = Math.max(0, Math.min(x, canvas.width));
@@ -170,21 +196,70 @@ class RisingFirework {
         this.targetY = Math.max(0, Math.min(targetY, canvas.height / 3));
         this.speed = speed || config.risingSpeed;
         this.color = `hsl(${Math.random() * 360}, 50%, 50%)`;
-        this.trail = [];
+        this.trailParticles = [];
         this.soundPlayed = false;
         
-        // 预计算一些值以提高性能
-        this.trailLength = 3;
-        this.soundTriggerDistance = this.speed * 25;
+        // 修改摆动相关参数
+        this.wobbleFrequency = Math.random() * 0.2 + 0.1; // 摆动频率
+        this.wobbleAmplitude = Math.random() * 0.8 + 0.2; // 摆动幅度
+        this.time = 0; // 用于计算摆动
+        
+        // 尾迹参数
+        this.lastX = x; // 记录上一帧的位置
+        this.lastY = y;
     }
 
     update() {
-        this.trail.push({ x: this.x, y: this.y });
-        if (this.trail.length > this.trailLength) this.trail.shift();
-
+        this.time += this.wobbleFrequency;
+        
+        // 计算水平摆动
+        const horizontalOffset = Math.sin(this.time) * this.wobbleAmplitude;
+        
+        // 更新位置 - 保持垂直上升，只在水平方向摆动
+        this.x += horizontalOffset;
         this.y -= this.speed;
+        
+        // 限制水平移动范围
+        const maxOffset = 30; // 最大水平偏移
+        if (Math.abs(this.x - this.lastX) > maxOffset) {
+            this.x = this.lastX + (maxOffset * Math.sign(this.x - this.lastX));
+        }
 
-        if (!this.soundPlayed && this.y - this.targetY <= this.soundTriggerDistance) {
+        // 添加尾迹粒子
+        const dx = this.x - this.lastX;
+        const dy = this.y - this.lastY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // 根据移动距离添加更多的尾迹粒子
+        const particleCount = Math.ceil(distance / 2);
+        for (let i = 0; i < particleCount; i++) {
+            const t = i / particleCount;
+            const particleX = this.lastX + dx * t;
+            const particleY = this.lastY + dy * t;
+            
+            if (Math.random() < 0.3) {
+                this.trailParticles.push(new TrailParticle(
+                    particleX + (Math.random() - 0.5) * 2,
+                    particleY + (Math.random() - 0.5) * 2,
+                    this.color
+                ));
+            }
+        }
+
+        // 更新尾迹粒子
+        this.trailParticles.forEach((particle, index) => {
+            particle.update();
+            if (particle.alpha < 0.05) {
+                this.trailParticles.splice(index, 1);
+            }
+        });
+
+        // 更新上一帧位置
+        this.lastX = this.x;
+        this.lastY = this.y;
+
+        // 声音播放逻辑
+        if (!this.soundPlayed && this.y - this.targetY <= this.speed * 25) {
             if (config.soundEnabled) {
                 const sound = explosionSound.cloneNode();
                 sound.volume = config.volume;
@@ -193,6 +268,7 @@ class RisingFirework {
             this.soundPlayed = true;
         }
 
+        // 检查是否到达目标高度
         if (this.y <= this.targetY) {
             fireworks.push(new Firework(this.x, this.y));
             return true;
@@ -201,18 +277,28 @@ class RisingFirework {
     }
 
     draw() {
-        ctx.beginPath();
-        ctx.moveTo(this.x, this.y);
-        for (const point of this.trail) {
-            ctx.lineTo(point.x, point.y);
-        }
-        ctx.strokeStyle = this.color;
-        ctx.lineWidth = 1;
-        ctx.stroke();
+        // 绘制尾迹粒子
+        this.trailParticles.forEach(particle => {
+            particle.draw();
+        });
 
+        // 绘制主体火花 - 增加大小
         ctx.beginPath();
-        ctx.arc(this.x, this.y, 2, 0, Math.PI * 2);
+        ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
         ctx.fillStyle = this.color;
+        ctx.fill();
+
+        // 绘制发光效果 - 增加发光范围
+        const gradient = ctx.createRadialGradient(
+            this.x, this.y, 0,
+            this.x, this.y, 8
+        );
+        gradient.addColorStop(0, `rgba(255, 255, 255, 0.4)`);
+        gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+        
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, 8, 0, Math.PI * 2);
+        ctx.fillStyle = gradient;
         ctx.fill();
     }
 }
@@ -253,7 +339,7 @@ function animate() {
     requestAnimationFrame(animate); // 请求下一帧动画
 }
 
-// 在自动射和点击事件之前添加检查函数
+// 在自动射和���击事件之前添加检查函数
 function getEnabledColorTypes() {
     const colorTypes = [];
     if (config.colorfulEnabled) colorTypes.push('colorful');
@@ -261,13 +347,49 @@ function getEnabledColorTypes() {
     return colorTypes;
 }
 
+// 添加一个变量来跟踪自动发射状态
+let autoLaunchEnabled = true;
+
+// 修改 createFirework 函数
+function createFirework(x, y) {
+    const currentTime = Date.now();
+    if (currentTime - lastClickTime < CLICK_COOLDOWN) return;
+    lastClickTime = currentTime;
+
+    if (fireworks.length + risingFireworks.length < config.maxFireworks + 5) {
+        // 停止自动发射
+        clearInterval(autoLaunchInterval);
+        autoLaunchEnabled = false;
+        
+        // 创建新的烟花
+        const risingFirework = new RisingFirework(
+            x,
+            canvas.height,
+            y,
+            config.risingSpeed * 1.2
+        );
+        risingFireworks.push(risingFirework);
+
+        // 1秒后重新启动自动发射
+        setTimeout(() => {
+            if (!autoLaunchEnabled) {
+                autoLaunchEnabled = true;
+                autoLaunchInterval = setInterval(autoLaunch, config.launchInterval);
+            }
+        }, 1000);
+    }
+}
+
+// 修改 autoLaunch 函数
 function autoLaunch() {
+    if (!autoLaunchEnabled) return;
+    
     const maxFireworks = config.maxFireworks;
     if (fireworks.length + risingFireworks.length < maxFireworks) {
         const fireworksToLaunch = Math.min(maxFireworks - (fireworks.length + risingFireworks.length), 3);
         for (let i = 0; i < fireworksToLaunch; i++) {
-            const xPosition = Math.random() * canvas.width; // 发射位置限制在屏幕宽度内
-            const targetYPosition = getTargetY(); // 目标位置限制在屏幕高度内
+            const xPosition = Math.random() * canvas.width;
+            const targetYPosition = getTargetY();
             const risingFirework = new RisingFirework(
                 xPosition,
                 canvas.height,
@@ -277,6 +399,7 @@ function autoLaunch() {
         }
     }
 }
+
 // 修改点击事件监听器
 canvas.addEventListener('click', (e) => {
     e.preventDefault();
@@ -421,32 +544,6 @@ function handleClick(e) {
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     createFirework(x, y);
-}
-
-// 抽创建烟花的逻辑到单独的函数
-function createFirework(x, y) {
-    const currentTime = Date.now();
-    if (currentTime - lastClickTime < CLICK_COOLDOWN) return;
-    lastClickTime = currentTime;
-
-    if (fireworks.length + risingFireworks.length < config.maxFireworks + 5) {
-        clearInterval(autoLaunchInterval);
-        if (userInteractionTimer) {
-            clearTimeout(userInteractionTimer);
-        }
-        
-        const risingFirework = new RisingFirework(
-            x,
-            canvas.height,
-            y,
-            config.risingSpeed * 1.2
-        );
-        risingFireworks.push(risingFirework);
-
-        userInteractionTimer = setTimeout(() => {
-            autoLaunchInterval = setInterval(autoLaunch, config.launchInterval);
-        }, config.interactionTimeout);
-    }
 }
 
 // 添加视口调整逻辑

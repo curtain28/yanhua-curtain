@@ -20,6 +20,9 @@ const config = {
     gravity: 0.05, // 重力
     heartEffectEnabled: true, // 是否启用心形效果
     interactionTimeout: 3000, // 用户交互超时时间(毫秒)
+    secondaryEnabled: true,        // 是否启用二级爆炸
+    secondaryChance: 0.3,         // 二级爆炸概率
+    secondaryParticleRatio: 0.2,  // 二级爆炸粒子比例
 };
 
 // 获取爆炸声音元素
@@ -32,7 +35,7 @@ function isMobileDevice() {
 }
 
 function getTargetY() {
-    return Math.random() * (canvas.height / 3); // 目标位置限制在屏高度���三分之一
+    return Math.random() * (canvas.height / 3); // 目标位置限制在屏高度三分之一
 }
 
 // 粒子类
@@ -101,7 +104,7 @@ class Particle {
 function randomGradientColor() {
     // 生成一个随机色相
     const baseHue = Math.random() * 360;
-    // 生成一个接近的色相，差异在150度以内
+    // 生成一个接近的色相，异在150度以内
     const closeHue = (baseHue + (Math.random() * 150 - 15)) % 360;
 
     return {
@@ -116,13 +119,14 @@ class Firework {
         this.x = x;
         this.y = y;
         this.particles = [];
+        this.secondaryFireworks = []; // 存储二级烟花
         this.init();
     }
 
     init() {
-        // 为整个烟花生成一对固定的渐变颜色
         const gradientColors = randomGradientColor();
-
+        
+        // 主爆炸
         for (let i = 0; i < config.particleCount; i++) {
             const angle = Math.random() * Math.PI * 2;
             const speed = Math.random() * 2 + 0.5;
@@ -130,12 +134,11 @@ class Firework {
             const offsetX = (Math.random() - 0.5) * 20;
             const offsetY = (Math.random() - 0.5) * 20;
 
-            // 简单的双色渐变
+            // 颜色渐变计算
             const t = i / config.particleCount;
             const startHue = parseInt(gradientColors.startColor.match(/\d+/)[0]);
             const endHue = parseInt(gradientColors.endColor.match(/\d+/)[0]);
             
-            // 计算最短路径的色相差值
             let hueDiff = endHue - startHue;
             if (Math.abs(hueDiff) > 180) {
                 hueDiff = hueDiff > 0 ? hueDiff - 360 : hueDiff + 360;
@@ -146,19 +149,105 @@ class Firework {
 
             this.particles.push(new Particle(this.x + offsetX, this.y + offsetY, particleColor, angle, speed, life));
         }
+
+        // 修改二级烟花轨迹
+        if (config.secondaryEnabled && Math.random() < config.secondaryChance) {
+            // 随机生成1-3个二级烟花
+            const count = Math.floor(Math.random() * 3) + 1;
+            for (let i = 0; i < count; i++) {
+                // 随机角度，但避免向下发射
+                const angle = (Math.random() * 1.5 + 0.25) * Math.PI;
+                const speed = 4 + Math.random() * 3;
+                
+                this.secondaryFireworks.push({
+                    x: this.x,
+                    y: this.y,
+                    vx: Math.cos(angle) * speed,
+                    vy: Math.sin(angle) * speed - 2,
+                    color: gradientColors.startColor,
+                    timer: 20 + Math.random() * 15,
+                    hasExploded: false,
+                    trail: []
+                });
+            }
+        }
     }
 
     update() {
+        // 更新主爆炸粒子
         this.particles.forEach((particle, index) => {
             particle.update();
             if (particle.life <= 0) {
                 this.particles.splice(index, 1);
             }
         });
+
+        // 更新二级烟花
+        this.secondaryFireworks.forEach((secondary) => {
+            if (!secondary.hasExploded) {
+                // 记录轨迹
+                secondary.trail.push({ x: secondary.x, y: secondary.y });
+                if (secondary.trail.length > 10) {
+                    secondary.trail.shift();
+                }
+
+                // 更新位置，应用重力效果创造抛物线
+                secondary.x += secondary.vx;
+                secondary.y += secondary.vy;
+                secondary.vy += config.gravity * 1.5; // 增加重力效果
+                secondary.timer--;
+
+                // 到达指定时间后爆炸
+                if (secondary.timer <= 0) {
+                    secondary.hasExploded = true;
+                    // 使用配置的粒子比例
+                    const particleCount = Math.floor(config.particleCount * config.secondaryParticleRatio);
+                    for (let i = 0; i < particleCount; i++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const speed = Math.random() * 1.5 + 0.5;
+                        const life = Math.random() * 2 + 1;
+                        const particle = new Particle(
+                            secondary.x,
+                            secondary.y,
+                            secondary.color,
+                            angle,
+                            speed,
+                            life
+                        );
+                        this.particles.push(particle);
+                    }
+                }
+            }
+        });
+
+        // 移除已爆炸的二级烟花
+        this.secondaryFireworks = this.secondaryFireworks.filter(secondary => !secondary.hasExploded);
     }
 
     draw() {
+        // 绘制所有粒子
         this.particles.forEach(particle => particle.draw());
+
+        // 绘制二级烟花轨迹
+        this.secondaryFireworks.forEach(secondary => {
+            if (!secondary.hasExploded) {
+                // 绘制轨迹
+                ctx.beginPath();
+                ctx.moveTo(secondary.x, secondary.y);
+                secondary.trail.forEach(point => {
+                    ctx.lineTo(point.x, point.y);
+                });
+                ctx.strokeStyle = secondary.color;
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                // 绘制火花点
+                ctx.beginPath();
+                ctx.arc(secondary.x, secondary.y, 2, 0, Math.PI * 2);
+                ctx.fillStyle = secondary.color;
+                ctx.fill();
+            }
+        });
     }
 }
 
@@ -318,7 +407,7 @@ function randomColor() {
 
 // 添加新的变量来跟踪用户交互
 let userInteractionTimer = null;
-const CLICK_COOLDOWN = 100; // 降低点击冷却时间到100ms
+const CLICK_COOLDOWN = 100; // 低点击冷却时间到100ms
 let lastClickTime = Date.now();
 
 function animate() {
@@ -339,7 +428,7 @@ function animate() {
     requestAnimationFrame(animate); // 请求下一帧动画
 }
 
-// 在自动射和���击事件之前添加检查函数
+// 在自动射和击事件之前添加检查函数
 function getEnabledColorTypes() {
     const colorTypes = [];
     if (config.colorfulEnabled) colorTypes.push('colorful');
@@ -602,4 +691,26 @@ function initializeSettings() {
 
 // 确保在页面加载时调用初始化函数
 document.addEventListener('DOMContentLoaded', initializeSettings);
+
+// 在文件末尾添加新的控制逻辑
+const secondaryExplosionToggle = document.getElementById('secondaryExplosionToggle');
+const secondaryExplosionChance = document.getElementById('secondaryExplosionChance');
+const secondaryParticleRatio = document.getElementById('secondaryParticleRatio');
+
+// 二级爆炸开关事件监听
+secondaryExplosionToggle.addEventListener('change', (e) => {
+    config.secondaryEnabled = e.target.checked;
+});
+
+// 二级爆炸概率事件监听
+secondaryExplosionChance.addEventListener('input', (e) => {
+    config.secondaryChance = parseInt(e.target.value) / 100;
+    updateValueDisplay(secondaryExplosionChance, 'secondaryExplosionChanceValue');
+});
+
+// 二级粒子比例事件监听
+secondaryParticleRatio.addEventListener('input', (e) => {
+    config.secondaryParticleRatio = parseInt(e.target.value) / 100;
+    updateValueDisplay(secondaryParticleRatio, 'secondaryParticleRatioValue');
+});
 

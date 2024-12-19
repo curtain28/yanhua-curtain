@@ -28,13 +28,9 @@ const config = {
         probability: 0.5,       // 文字生成概率: 50%
         texts: [  
             "新年快乐",
-            "恭喜发财",
-            "万事如意",
-            "心想事成",
-            "吉祥如意",
-            "大吉大利"
+            "婷婷"
         ],
-        fontSize: 100,          // 文字大小: 100
+        fontSize: 120,          // 文字大小: 120
         color: "#ff8888",       // 恢复原来的颜色设置
         particleSize: 2,
         particleSpacing: 3
@@ -69,7 +65,7 @@ class Particle {
         this.initialSpeed = speed;
         this.stayTime = 1;      // 停留时间1秒
         this.createTime = Date.now();
-        this.initialX = x;      // 记���初始位置
+        this.initialX = x;      // 记录初始位置
         this.initialY = y;
         this.targetX = x;       // 目标位置
         this.targetY = y;
@@ -662,10 +658,10 @@ const maxFireworksInput = document.getElementById('maxFireworks');
 const gravityInput = document.getElementById('gravity');
 const heartEffectToggle = document.getElementById('heartEffectToggle');
 
-// 设置��换事监听
+// 设置换事监听
 settingsToggle.addEventListener('click', () => {
     const isHidden = settingsContent.style.display === 'none' || !settingsContent.style.display; // 判断置是否隐藏
-    settingsContent.style.display = isHidden ? 'block' : 'none'; // 切换显示状��
+    settingsContent.style.display = isHidden ? 'block' : 'none'; // 切换显示状
 });
 
 // 更新值显示
@@ -737,7 +733,7 @@ window.addEventListener('resize', () => {
     canvas.height = window.innerHeight; // 更新画布高度
 });
 
-// 修改事件监听��以支持触摸事件
+// 修改事件监听以支持触摸事件
 canvas.addEventListener('touchstart', handleTouch);
 canvas.addEventListener('click', handleClick);
 
@@ -831,7 +827,7 @@ function getTextParticles(text, x, y, fontSize, spacing) {
         maxY: window.innerHeight * 0.85
     };
 
-    // ��查位置是否在安全区域内
+    // 查��置是否在安全区域内
     if (x < safeArea.minX || x > safeArea.maxX || 
         y < safeArea.minY || y > safeArea.maxY) {
         return []; // 如果不在安全区域内，回空数组，不生成文字
@@ -842,7 +838,7 @@ function getTextParticles(text, x, y, fontSize, spacing) {
     const ctx = canvas.getContext('2d');
     
     // 设置画布大小
-    ctx.font = `${fontSize}px Arial`;
+    ctx.font = `${fontSize}px CustomFont`;  // 使用新字体
     const metrics = ctx.measureText(text);
     const textWidth = metrics.width;
     const textHeight = fontSize;
@@ -855,7 +851,7 @@ function getTextParticles(text, x, y, fontSize, spacing) {
     canvas.height = textHeight;
     
     // 绘制文字
-    ctx.font = `${fontSize}px Arial`;
+    ctx.font = `${fontSize}px CustomFont`;  // 重新设置字体
     ctx.fillStyle = 'white';
     ctx.textBaseline = 'top';
     ctx.fillText(text, 0, 0);
@@ -981,5 +977,12 @@ document.addEventListener('DOMContentLoaded', () => {
         config.interactionTimeout = parseInt(e.target.value);
         updateValueDisplay(interactionTimeoutInput, 'interactionTimeoutValue');
     });
+});
+
+// 添加字体加载检查
+document.fonts.load('10px CustomFont').then(() => {
+    console.log('自定义字体已加载');
+}).catch(err => {
+    console.warn('自定义字体加载失败:', err);
 });
 

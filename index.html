@@ -18,6 +18,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>烟花</title>
     <link rel="stylesheet" href="css/styles.css">
+    <style>
+        @font-face {
+            font-family: 'CustomFont';
+            src: url('fonts/zihunbaige.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+    </style>
 </head>
 <body>
     <canvas id="fireworks"></canvas>
@@ -71,7 +79,7 @@
                 <input type="checkbox" id="heartEffectToggle" checked>
             </div>
             <div class="setting-item">
-                <label>二级爆炸效果:</label>
+                <label>二级爆炸效��:</label>
                 <input type="checkbox" id="secondaryExplosionToggle" checked>
             </div>
             <div class="setting-item">
@@ -95,8 +103,8 @@
             </div>
             <div class="setting-item">
                 <label>文字大小:</label>
-                <input type="range" id="mainFontSize" min="10" max="200" value="100" step="10">
-                <span id="mainFontSizeValue">100</span>
+                <input type="range" id="mainFontSize" min="10" max="200" value="120" step="10">
+                <span id="mainFontSizeValue">120</span>
             </div>
         </div>
     </div>

@@ -100,13 +100,14 @@ class Particle {
                 const fadeTime = existTime - this.stayTime;
                 const fadeProgress = Math.min(1, fadeTime / 1.5);
                 
-                // 使用二次方增加非线性效果
-                const spread = Math.pow(fadeProgress, 2) * 100;
+                // 缩减消散范围，使用更温和的扩散效果
+                const spread = Math.pow(fadeProgress, 2) * 30; // 将100改为30
                 const spreadX = Math.cos(this.fadeOutAngle) * spread * this.fadeOutSpeed;
                 const spreadY = Math.sin(this.fadeOutAngle) * spread * this.fadeOutSpeed;
                 
+                // 减小向下的运动
                 this.x = this.targetX + spreadX;
-                this.y = this.targetY + spreadY + fadeProgress * 20;
+                this.y = this.targetY + spreadY + fadeProgress * 8; // 将20改为8
                 
                 this.opacity = Math.max(0, 1 - Math.pow(fadeProgress, 1.5));
                 
@@ -115,7 +116,7 @@ class Particle {
                 }
             }
         } else {
-            // 恢复普通烟花粒子的更新逻辑
+            // 普通烟花粒子的更新逻辑保持不变
             this.history.push({ x: this.x, y: this.y });
             if (this.history.length > 10) this.history.shift();
             
@@ -501,7 +502,7 @@ class RisingFirework {
         ctx.fillStyle = this.color;
         ctx.fill();
 
-        // 绘制发光效果 - 增加发光范围
+        // 绘制发光效果 - 增加光范围
         const gradient = ctx.createRadialGradient(
             this.x, this.y, 0,
             this.x, this.y, 8
@@ -640,7 +641,7 @@ canvas.addEventListener('click', (e) => {
 
 let autoLaunchInterval = null; // 自动发射间隔
 
-// ���击事件监听
+// 点击事件监听
 document.addEventListener('click', () => {
     if (startPrompt.style.display !== 'none') {
         startPrompt.style.display = 'none'; // 隐藏开始提示
@@ -661,10 +662,10 @@ const maxFireworksInput = document.getElementById('maxFireworks');
 const gravityInput = document.getElementById('gravity');
 const heartEffectToggle = document.getElementById('heartEffectToggle');
 
-// 设置切换事监听
+// 设置��换事监听
 settingsToggle.addEventListener('click', () => {
     const isHidden = settingsContent.style.display === 'none' || !settingsContent.style.display; // 判断置是否隐藏
-    settingsContent.style.display = isHidden ? 'block' : 'none'; // 切换显示状态
+    settingsContent.style.display = isHidden ? 'block' : 'none'; // 切换显示状��
 });
 
 // 更新值显示
@@ -736,7 +737,7 @@ window.addEventListener('resize', () => {
     canvas.height = window.innerHeight; // 更新画布高度
 });
 
-// 修改事件监听器以支持触摸事件
+// 修改事件监听��以支持触摸事件
 canvas.addEventListener('touchstart', handleTouch);
 canvas.addEventListener('click', handleClick);
 
@@ -793,28 +794,10 @@ settingsToggle.addEventListener('touchstart', (e) => {
     settingsContent.style.display = isHidden ? 'block' : 'none';
 });
 
-// 添加meta标签（在HTML的head部分）
+// 添加meta标（在HTML的head部分）
 
 // 获取交互超时时间输入元素
 const interactionTimeoutInput = document.getElementById('interactionTimeout');
-
-// 初始化设置值
-function initializeSettings() {
-    // ... existing settings initialization ...
-    
-    // 设置互超时时���的初始值
-    interactionTimeoutInput.value = config.interactionTimeout;
-    updateValueDisplay(interactionTimeoutInput, 'interactionTimeoutValue');
-    
-    // 添加事件监听
-    interactionTimeoutInput.addEventListener('input', (e) => {
-        config.interactionTimeout = parseInt(e.target.value);
-        updateValueDisplay(interactionTimeoutInput, 'interactionTimeoutValue');
-    });
-}
-
-// 确保在页面加载时调用初始化函数
-document.addEventListener('DOMContentLoaded', initializeSettings);
 
 // 在文件末尾添加新的控制逻辑
 const secondaryExplosionToggle = document.getElementById('secondaryExplosionToggle');
@@ -848,10 +831,10 @@ function getTextParticles(text, x, y, fontSize, spacing) {
         maxY: window.innerHeight * 0.85
     };
 
-    // 检查位置是否在安全区域内
+    // ��查位置是否在安全区域内
     if (x < safeArea.minX || x > safeArea.maxX || 
         y < safeArea.minY || y > safeArea.maxY) {
-        return []; // 如果不在安全区域内，���回空数组，不生成文字
+        return []; // 如果不在安全区域内，回空数组，不生成文字
     }
 
     const particles = [];
@@ -864,7 +847,7 @@ function getTextParticles(text, x, y, fontSize, spacing) {
     const textWidth = metrics.width;
     const textHeight = fontSize;
     
-    // 调整位置确保文字在屏幕内
+    // 调整位置确文字在屏幕内
     const safeX = Math.min(Math.max(x, textWidth / 2 + safeArea.minX), safeArea.maxX - textWidth / 2);
     const safeY = Math.min(Math.max(y, textHeight / 2 + safeArea.minY), safeArea.maxY - textHeight / 2);
     
@@ -930,24 +913,6 @@ function getTextParticles(text, x, y, fontSize, spacing) {
     return particles;
 }
 
-// 在设置面板中添加文字控制选项
-function initializeSettings() {
-    // ... 现有代码 ...
-    
-    // 添加文字效果控制
-    const textToggle = document.createElement('div');
-    textToggle.className = 'setting-item';
-    textToggle.innerHTML = `
-        <label>文字效果:</label>
-        <input type="checkbox" id="textEffectToggle" ${config.textParticles.enabled ? 'checked' : ''}>
-    `;
-    settingsContent.appendChild(textToggle);
-    
-    document.getElementById('textEffectToggle').addEventListener('change', (e) => {
-        config.textParticles.enabled = e.target.checked;
-    });
-}
-
 // 在文件顶部添加新的变量来跟踪文字位置
 const textPositionHistory = [];
 const TEXT_POSITION_COOLDOWN = 2000; // 文字位置冷却时间(毫秒)
@@ -963,13 +928,13 @@ textEffectToggle.addEventListener('change', (e) => {
     config.textParticles.enabled = e.target.checked;
 });
 
-// 文���生成概率事件监听
+// 文字生成概率事件监听
 textProbability.addEventListener('input', (e) => {
     config.textParticles.probability = parseInt(e.target.value) / 100;
     updateValueDisplay(textProbability, 'textProbabilityValue');
 });
 
-// ��字大小事件监听
+// 文字大小事件监听
 mainFontSize.addEventListener('input', (e) => {
     config.textParticles.fontSize = parseInt(e.target.value);
     updateValueDisplay(mainFontSize, 'mainFontSizeValue');
@@ -982,7 +947,7 @@ let currentTextIndex = 0;
 function getRandomBrightColor() {
     // 使用HSL颜色空间，保证颜色鲜艳
     const hue = Math.random() * 360;  // 随机色相
-    const saturation = 80 + Math.random() * 20;  // 80-100的饱和���
+    const saturation = 80 + Math.random() * 20;  // 80-100的饱和度
     const lightness = 50 + Math.random() * 10;   // 50-60的亮度
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
@@ -995,7 +960,7 @@ function getRandomGradientColors() {
     const hueDiff = 15 + Math.random() * 30;
     const endHue = (baseHue + hueDiff) % 360;
     
-    // 使用较高的饱和度和亮度，使颜色更鲜艳
+    // 使用较高的饱和度和亮度使颜色更鲜艳
     const saturation = 90 + Math.random() * 10;  // 90-100的饱和度
     const lightness = 55 + Math.random() * 10;   // 55-65的亮度
     
@@ -1004,4 +969,17 @@ function getRandomGradientColors() {
         end: `hsl(${endHue}, ${saturation}%, ${lightness}%)`
     };
 }
+
+// 只保留交互超时时间的初始化
+document.addEventListener('DOMContentLoaded', () => {
+    // 设置交互超时时间的初始值
+    interactionTimeoutInput.value = config.interactionTimeout;
+    updateValueDisplay(interactionTimeoutInput, 'interactionTimeoutValue');
+    
+    // 添加事件监听
+    interactionTimeoutInput.addEventListener('input', (e) => {
+        config.interactionTimeout = parseInt(e.target.value);
+        updateValueDisplay(interactionTimeoutInput, 'interactionTimeoutValue');
+    });
+});
 

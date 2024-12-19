@@ -10,23 +10,23 @@ canvas.height = window.innerHeight;
 
 // 配置参数
 const config = {
-    particleCount: 500, // 粒子数量
-    launchInterval: 300, // 发射间隔
-    risingSpeed: 20, // 上升速度
-    fadeSpeed: 2, // 衰减速度
-    maxFireworks: 10, // 最大烟花数量
-    soundEnabled: true, // 是否启用声音
-    volume: 0.5, // 音量
-    gravity: 0.05, // 重力
-    heartEffectEnabled: true, // 是否启用心形效果
-    interactionTimeout: 3000, // 用户交互超时时间(毫秒)
-    secondaryEnabled: true,        // 是否启用二级爆炸
-    secondaryChance: 0.3,         // 二级爆炸概率
-    secondaryParticleRatio: 0.2,  // 二级爆炸粒子比例
+    particleCount: 500,         // 粒子数量: 500
+    launchInterval: 200,        // 发射间隔: 200ms
+    risingSpeed: 10,           // 上升速度: 10
+    fadeSpeed: 5,              // 粒子消散速度: 5
+    maxFireworks: 20,          // 最大烟花数量: 20
+    gravity: 0.05,             // 粒子重力效果: 0.05
+    interactionTimeout: 3000,   // 交互超时: 3000ms
+    soundEnabled: true,         // 音效开关: 开启
+    volume: 0.5,               // 音量: 0.5
+    heartEffectEnabled: true,   // 爱心效果: 开启
+    secondaryEnabled: true,     // 二级爆炸效果: 开启
+    secondaryChance: 0.3,      // 二级爆炸概率: 30%
+    secondaryParticleRatio: 0.2, // 二级粒子比例: 20%
     textParticles: {
-        enabled: true,
-        probability: 0.5,
-        texts: [  // 文字内容数组
+        enabled: true,          // 文字效果: 开启
+        probability: 0.5,       // 文字生成概率: 50%
+        texts: [  
             "新年快乐",
             "恭喜发财",
             "万事如意",
@@ -34,8 +34,8 @@ const config = {
             "吉祥如意",
             "大吉大利"
         ],
-        fontSize: 100,
-        color: "#ff8888",
+        fontSize: 100,          // 文字大小: 100
+        color: "#ff8888",       // 恢复原来的颜色设置
         particleSize: 2,
         particleSpacing: 3
     }
@@ -62,8 +62,8 @@ class Particle {
         this.color = color; // 粒子颜色
         this.angle = angle; // 粒子角度
         this.speed = speed; // 粒子速度
-        this.life = life; // 粒子寿命
-        this.opacity = 1; // 粒子不透明度
+        this.life = life;       // 当前生命值
+        this.opacity = 1;       // 不透明度
         this.history = []; // 粒子历史轨迹
     }
 
@@ -76,13 +76,13 @@ class Particle {
             // 原有的粒子更新逻辑
             this.history.push({ x: this.x, y: this.y });
             if (this.history.length > 10) this.history.shift();
+            
+            this.x += Math.cos(this.angle) * this.speed;
+            this.y += Math.sin(this.angle) * this.speed + config.gravity;
+            this.speed *= 0.98;
+            this.life -= config.fadeSpeed / 100;
+            this.opacity = Math.max(0, this.life / 2);
         }
-
-        this.x += Math.cos(this.angle) * this.speed;
-        this.y += Math.sin(this.angle) * this.speed + config.gravity;
-        this.speed *= 0.98;
-        this.life -= config.fadeSpeed / 100;
-        this.opacity = Math.max(0, this.life / 2);
     }
 
     draw() {
@@ -381,7 +381,7 @@ class RisingFirework {
         // 计算水平摆动
         const horizontalOffset = Math.sin(this.time) * this.wobbleAmplitude;
         
-        // 新位置 - 保持垂直上升，只在水平方向摆动
+        // 新位置 - 保持垂直上升只在水平方向摆动
         this.x += horizontalOffset;
         this.y -= this.speed;
         
@@ -601,7 +601,7 @@ document.addEventListener('click', () => {
     }
 }, { once: true }); // 只执行一次
 
-animate(); // 开���动画
+animate(); // 开始动画
 
 // 获取设置相关元素
 const settingsToggle = document.getElementById('settings-toggle');
@@ -616,7 +616,7 @@ const heartEffectToggle = document.getElementById('heartEffectToggle');
 
 // 设置切换事监听
 settingsToggle.addEventListener('click', () => {
-    const isHidden = settingsContent.style.display === 'none' || !settingsContent.style.display; // 判断设置是否隐藏
+    const isHidden = settingsContent.style.display === 'none' || !settingsContent.style.display; // 判断��置是否隐藏
     settingsContent.style.display = isHidden ? 'block' : 'none'; // 切换显示状态
 });
 
@@ -631,7 +631,7 @@ particleCountInput.addEventListener('input', (e) => {
     updateValueDisplay(particleCountInput, 'particleCountValue'); // 更新显示
 });
 
-// 发射间隔输入���件监听
+// 发射间隔输入件监听
 launchIntervalInput.addEventListener('input', (e) => {
     config.launchInterval = parseInt(e.target.value); // 更新发射间隔
     updateValueDisplay(launchIntervalInput, 'launchIntervalValue'); // 新示
@@ -663,7 +663,7 @@ gravityInput.addEventListener('input', (e) => {
     updateValueDisplay(gravityInput, 'gravityValue'); // 更新显示
 });
 
-// 心��效果切换事件监听
+// 心效果切换事件监听
 heartEffectToggle.addEventListener('change', (e) => {
     config.heartEffectEnabled = e.target.checked; // 更新心形果启状态
 });
@@ -834,17 +834,37 @@ function getTextParticles(text, x, y, fontSize, spacing) {
     const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const pixels = imageData.data;
     
-    // 生成粒子，使用安全的坐标
+    // 为每个文字生成渐变色
+    const gradientColors = getRandomGradientColors();
+    
+    // 生成粒子时使用渐变色
     for (let i = 0; i < pixels.length; i += 4) {
-        if (pixels[i + 3] > 128) { // 不透明度大于128的像素
+        if (pixels[i + 3] > 128) {
             const px = (i / 4) % canvas.width;
             const py = Math.floor((i / 4) / canvas.width);
             
             if (px % spacing === 0 && py % spacing === 0) {
+                // 计算当前像素在文字中的相对位置（0-1之间）
+                const progress = px / canvas.width;
+                
+                // 根据位置计算渐变色
+                const hue1 = parseInt(gradientColors.start.match(/\d+/)[0]);
+                const hue2 = parseInt(gradientColors.end.match(/\d+/)[0]);
+                
+                // 计算色相差值
+                let hueDiff = hue2 - hue1;
+                if (Math.abs(hueDiff) > 180) {
+                    hueDiff = hueDiff > 0 ? hueDiff - 360 : hueDiff + 360;
+                }
+                
+                // 计算当前颜色
+                const currentHue = (hue1 + hueDiff * progress + 360) % 360;
+                const color = `hsl(${currentHue}, 90%, 55%)`;
+                
                 const particle = new Particle(
                     safeX + px - textWidth / 2,
                     safeY + py - textHeight / 2,
-                    config.textParticles.color,
+                    color,
                     Math.random() * Math.PI * 2,
                     0.1,
                     5
@@ -897,7 +917,7 @@ textProbability.addEventListener('input', (e) => {
     updateValueDisplay(textProbability, 'textProbabilityValue');
 });
 
-// 文字大小事件监听
+// ��字大小事件监听
 mainFontSize.addEventListener('input', (e) => {
     config.textParticles.fontSize = parseInt(e.target.value);
     updateValueDisplay(mainFontSize, 'mainFontSizeValue');
@@ -905,4 +925,31 @@ mainFontSize.addEventListener('input', (e) => {
 
 // 在文件顶部添加一个变量来跟踪当前文字索引
 let currentTextIndex = 0;
+
+// 在文件顶部添加一个生成随机HSL颜色的函数
+function getRandomBrightColor() {
+    // 使用HSL颜色空间，保证颜色鲜艳
+    const hue = Math.random() * 360;  // 随机色相
+    const saturation = 80 + Math.random() * 20;  // 80-100的饱和���
+    const lightness = 50 + Math.random() * 10;   // 50-60的亮度
+    return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
+}
+
+// 修改生成渐变色的函数
+function getRandomGradientColors() {
+    // 生成基础色相
+    const baseHue = Math.random() * 360;
+    // 结束色相与开始色相相差15-45度，确保颜色相近
+    const hueDiff = 15 + Math.random() * 30;
+    const endHue = (baseHue + hueDiff) % 360;
+    
+    // 使用较高的饱和度和亮度，使颜色更鲜艳
+    const saturation = 90 + Math.random() * 10;  // 90-100的饱和度
+    const lightness = 55 + Math.random() * 10;   // 55-65的亮度
+    
+    return {
+        start: `hsl(${baseHue}, ${saturation}%, ${lightness}%)`,
+        end: `hsl(${endHue}, ${saturation}%, ${lightness}%)`
+    };
+}
 

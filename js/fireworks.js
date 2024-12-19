@@ -25,15 +25,19 @@ const config = {
     secondaryParticleRatio: 0.2,  // 二级爆炸粒子比例
     textParticles: {
         enabled: true,
-        text: "新年快乐",
-        subText: "Happy New Year",
+        probability: 0.5,
+        texts: [  // 文字内容数组
+            "新年快乐",
+            "恭喜发财",
+            "万事如意",
+            "心想事成",
+            "吉祥如意",
+            "大吉大利"
+        ],
         fontSize: 100,
-        subFontSize: 50,
         color: "#ff8888",
         particleSize: 2,
-        particleSpacing: 3,
-        areaWidth: 0.4,  // 屏幕宽度的40%
-        areaHeight: 0.4  // 屏幕高度的40%
+        particleSpacing: 3
     }
 };
 
@@ -179,7 +183,7 @@ class Firework {
             this.particles.push(new Particle(this.x + offsetX, this.y + offsetY, particleColor, angle, speed, life));
         }
 
-        // 修改二级烟花轨迹
+        // 修改二级烟花轨道
         if (config.secondaryEnabled && Math.random() < config.secondaryChance) {
             // 随机生成1-3个二级烟花
             const count = Math.floor(Math.random() * 3) + 1;
@@ -202,7 +206,7 @@ class Firework {
         }
 
         // 修改文字粒子生成逻辑
-        if (config.textParticles.enabled && Math.random() < 0.5) { // 50%概率生成文字
+        if (config.textParticles.enabled && Math.random() < config.textParticles.probability) {
             const currentTime = Date.now();
             
             // 清理过期的位置记录
@@ -228,30 +232,26 @@ class Firework {
                     time: currentTime
                 });
 
-                // 生成主文字和副文字
+                // 获取当前文字并更新索引
+                const currentText = config.textParticles.texts[currentTextIndex];
+                currentTextIndex = (currentTextIndex + 1) % config.textParticles.texts.length;
+
+                // 生成文字粒子
                 const textParticles = getTextParticles(
-                    config.textParticles.text,
+                    currentText,  // 使用当前文字
                     this.x,
-                    this.y - config.textParticles.fontSize / 2,
+                    this.y,
                     config.textParticles.fontSize,
                     config.textParticles.particleSpacing
                 );
                 
-                const subTextParticles = getTextParticles(
-                    config.textParticles.subText,
-                    this.x,
-                    this.y + config.textParticles.fontSize / 2,
-                    config.textParticles.subFontSize,
-                    config.textParticles.particleSpacing
-                );
-                
-                this.particles.push(...textParticles, ...subTextParticles);
+                this.particles.push(...textParticles);
             }
         }
     }
 
     update() {
-        // 更新主爆炸粒子
+        // 更新主爆炸子
         this.particles.forEach((particle, index) => {
             particle.update();
             if (particle.life <= 0) {
@@ -396,7 +396,7 @@ class RisingFirework {
         const dy = this.y - this.lastY;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        // 根据移动距离添加更多的尾迹粒子
+        // 根据移动距离添加更多的尾粒子
         const particleCount = Math.ceil(distance / 2);
         for (let i = 0; i < particleCount; i++) {
             const t = i / particleCount;
@@ -448,7 +448,7 @@ class RisingFirework {
             particle.draw();
         });
 
-        // 绘制主体花 - 增加大小
+        // 绘制主体花 - 增大大小
         ctx.beginPath();
         ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
         ctx.fillStyle = this.color;
@@ -601,7 +601,7 @@ document.addEventListener('click', () => {
     }
 }, { once: true }); // 只执行一次
 
-animate(); // 开始动画
+animate(); // 开���动画
 
 // 获取设置相关元素
 const settingsToggle = document.getElementById('settings-toggle');
@@ -631,11 +631,11 @@ particleCountInput.addEventListener('input', (e) => {
     updateValueDisplay(particleCountInput, 'particleCountValue'); // 更新显示
 });
 
-// 发射间隔输入事件监听
+// 发射间隔输入���件监听
 launchIntervalInput.addEventListener('input', (e) => {
     config.launchInterval = parseInt(e.target.value); // 更新发射间隔
     updateValueDisplay(launchIntervalInput, 'launchIntervalValue'); // 新示
-    clearInterval(autoLaunchInterval); // 清除自动��射间隔
+    clearInterval(autoLaunchInterval); // 清除自动射间隔
     autoLaunchInterval = setInterval(autoLaunch, config.launchInterval); // 置新自动发射间隔
 });
 
@@ -663,9 +663,9 @@ gravityInput.addEventListener('input', (e) => {
     updateValueDisplay(gravityInput, 'gravityValue'); // 更新显示
 });
 
-// 心形效果切换事件监听
+// 心��效果切换事件监听
 heartEffectToggle.addEventListener('change', (e) => {
-    config.heartEffectEnabled = e.target.checked; // 更新心形效果启状态
+    config.heartEffectEnabled = e.target.checked; // 更新心形果启状态
 });
 
 // 获取声音相关元素
@@ -755,7 +755,7 @@ const interactionTimeoutInput = document.getElementById('interactionTimeout');
 function initializeSettings() {
     // ... existing settings initialization ...
     
-    // 设置互超时时间的初始值
+    // 设置互超时时���的初始值
     interactionTimeoutInput.value = config.interactionTimeout;
     updateValueDisplay(interactionTimeoutInput, 'interactionTimeoutValue');
     
@@ -791,7 +791,7 @@ secondaryParticleRatio.addEventListener('input', (e) => {
     updateValueDisplay(secondaryParticleRatio, 'secondaryParticleRatioValue');
 });
 
-// 添加文���粒子生成函数
+// 添加文字粒子生成函数
 function getTextParticles(text, x, y, fontSize, spacing) {
     // 计算安全区域(屏幕中心70%的区域)
     const safeArea = {
@@ -880,4 +880,29 @@ function initializeSettings() {
 const textPositionHistory = [];
 const TEXT_POSITION_COOLDOWN = 2000; // 文字位置冷却时间(毫秒)
 const TEXT_POSITION_THRESHOLD = 400; // 增加判断位置重复的距离阈值到400像素
+
+// 获取新添加的控制元素
+const textEffectToggle = document.getElementById('textEffectToggle');
+const textProbability = document.getElementById('textProbability');
+const mainFontSize = document.getElementById('mainFontSize');
+
+// 文字效果开关事件监听
+textEffectToggle.addEventListener('change', (e) => {
+    config.textParticles.enabled = e.target.checked;
+});
+
+// 文字生成概率事件监听
+textProbability.addEventListener('input', (e) => {
+    config.textParticles.probability = parseInt(e.target.value) / 100;
+    updateValueDisplay(textProbability, 'textProbabilityValue');
+});
+
+// 文字大小事件监听
+mainFontSize.addEventListener('input', (e) => {
+    config.textParticles.fontSize = parseInt(e.target.value);
+    updateValueDisplay(mainFontSize, 'mainFontSizeValue');
+});
+
+// 在文件顶部添加一个变量来跟踪当前文字索引
+let currentTextIndex = 0;
 

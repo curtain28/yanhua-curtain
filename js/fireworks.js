@@ -23,6 +23,18 @@ const config = {
     secondaryEnabled: true,        // 是否启用二级爆炸
     secondaryChance: 0.3,         // 二级爆炸概率
     secondaryParticleRatio: 0.2,  // 二级爆炸粒子比例
+    textParticles: {
+        enabled: true,
+        text: "新年快乐",
+        subText: "Happy New Year",
+        fontSize: 100,
+        subFontSize: 50,
+        color: "#ff8888",
+        particleSize: 2,
+        particleSpacing: 3,
+        areaWidth: 0.4,  // 屏幕宽度的40%
+        areaHeight: 0.4  // 屏幕高度的40%
+    }
 };
 
 // 获取爆炸声音元素
@@ -52,37 +64,54 @@ class Particle {
     }
 
     update() {
-        this.history.push({ x: this.x, y: this.y }); // 记录历史轨迹
-        if (this.history.length > 10) this.history.shift(); // 保持历史轨迹长度
+        if (this.isTextParticle) {
+            // 文字粒子的特殊运动
+            this.speed *= 0.99; // 更慢的减速
+            this.life -= config.fadeSpeed / 200; // 更慢的消失
+        } else {
+            // 原有的粒子更新逻辑
+            this.history.push({ x: this.x, y: this.y });
+            if (this.history.length > 10) this.history.shift();
+        }
 
-        this.x += Math.cos(this.angle) * this.speed; // 更新x坐标
-        this.y += Math.sin(this.angle) * this.speed + config.gravity; // 更新y坐标
-        this.speed *= 0.98; // 减速
-        this.life -= config.fadeSpeed / 100; // 减少寿命
-        this.opacity = Math.max(0, this.life / 2); // 更新不透明度
+        this.x += Math.cos(this.angle) * this.speed;
+        this.y += Math.sin(this.angle) * this.speed + config.gravity;
+        this.speed *= 0.98;
+        this.life -= config.fadeSpeed / 100;
+        this.opacity = Math.max(0, this.life / 2);
     }
 
     draw() {
-        if (isMobileDevice() && this.opacity <= 0) return; // 仅在移动设备上跳过不必要的绘制
-
-        ctx.globalAlpha = this.opacity; // 设置全局不透明度
-        ctx.fillStyle = this.color; // 设置填充颜色
-
-        if (this.life < 1 && config.heartEffectEnabled) {
-            this.drawHeart(); // 绘制心形
+        if (this.isTextParticle) {
+            // 文字粒子的特殊绘制
+            ctx.globalAlpha = this.opacity;
+            ctx.fillStyle = this.color;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, config.textParticles.particleSize, 0, Math.PI * 2);
+            ctx.fill();
         } else {
-            ctx.beginPath(); // 开始路径
-            ctx.arc(this.x, this.y, 2, 0, Math.PI * 2); // 绘制圆形
-            ctx.fill(); // 填充
+            // 原有的粒子绘制逻辑
+            if (isMobileDevice() && this.opacity <= 0) return; // 仅在移动设备上跳过不必要的绘制
 
-            ctx.beginPath(); // 开始路径
-            ctx.moveTo(this.x, this.y); // 移动到粒子位
-            for (let i = this.history.length - 1; i >= 0; i--) {
-                const point = this.history[i];
-                ctx.lineTo(point.x, point.y); // 绘制历史轨迹
+            ctx.globalAlpha = this.opacity; // 设置全局不透明度
+            ctx.fillStyle = this.color; // 设置填充颜色
+
+            if (this.life < 1 && config.heartEffectEnabled) {
+                this.drawHeart(); // 绘制心形
+            } else {
+                ctx.beginPath(); // 开始路径
+                ctx.arc(this.x, this.y, 2, 0, Math.PI * 2); // 绘制圆形
+                ctx.fill(); // 填充
+
+                ctx.beginPath(); // 开始路径
+                ctx.moveTo(this.x, this.y); // 移动到粒子位
+                for (let i = this.history.length - 1; i >= 0; i--) {
+                    const point = this.history[i];
+                    ctx.lineTo(point.x, point.y); // 绘制历史轨迹
+                }
+                ctx.strokeStyle = this.color; // 设置描边颜色
+                ctx.stroke(); // 描边
             }
-            ctx.strokeStyle = this.color; // 设置描边颜色
-            ctx.stroke(); // 描边
         }
     }
 
@@ -171,6 +200,54 @@ class Firework {
                 });
             }
         }
+
+        // 修改文字粒子生成逻辑
+        if (config.textParticles.enabled && Math.random() < 0.5) { // 50%概率生成文字
+            const currentTime = Date.now();
+            
+            // 清理过期的位置记录
+            while (textPositionHistory.length > 0 && 
+                   currentTime - textPositionHistory[0].time > TEXT_POSITION_COOLDOWN) {
+                textPositionHistory.shift();
+            }
+
+            // 检查是否与所有现有文字保持足够距离
+            const isPositionValid = !textPositionHistory.some(pos => {
+                const dx = pos.x - this.x;
+                const dy = pos.y - this.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                return distance < TEXT_POSITION_THRESHOLD;
+            });
+
+            // 如果位置有效，则生成文字
+            if (isPositionValid) {
+                // 记录当前位置
+                textPositionHistory.push({
+                    x: this.x,
+                    y: this.y,
+                    time: currentTime
+                });
+
+                // 生成主文字和副文字
+                const textParticles = getTextParticles(
+                    config.textParticles.text,
+                    this.x,
+                    this.y - config.textParticles.fontSize / 2,
+                    config.textParticles.fontSize,
+                    config.textParticles.particleSpacing
+                );
+                
+                const subTextParticles = getTextParticles(
+                    config.textParticles.subText,
+                    this.x,
+                    this.y + config.textParticles.fontSize / 2,
+                    config.textParticles.subFontSize,
+                    config.textParticles.particleSpacing
+                );
+                
+                this.particles.push(...textParticles, ...subTextParticles);
+            }
+        }
     }
 
     update() {
@@ -191,7 +268,7 @@ class Firework {
                     secondary.trail.shift();
                 }
 
-                // 更新位置，应用重力效果创造抛物线
+                // 更新位置，应用重力效果造抛物线
                 secondary.x += secondary.vx;
                 secondary.y += secondary.vy;
                 secondary.vy += config.gravity * 1.5; // 增加重力效果
@@ -200,7 +277,7 @@ class Firework {
                 // 到达指定时间后爆炸
                 if (secondary.timer <= 0) {
                     secondary.hasExploded = true;
-                    // 使用配置的粒子比例
+                    // 使用配置的粒子例
                     const particleCount = Math.floor(config.particleCount * config.secondaryParticleRatio);
                     for (let i = 0; i < particleCount; i++) {
                         const angle = Math.random() * Math.PI * 2;
@@ -241,7 +318,7 @@ class Firework {
                 ctx.lineWidth = 2;
                 ctx.stroke();
 
-                // 绘制火花点
+                // 绘制烟花点
                 ctx.beginPath();
                 ctx.arc(secondary.x, secondary.y, 2, 0, Math.PI * 2);
                 ctx.fillStyle = secondary.color;
@@ -304,7 +381,7 @@ class RisingFirework {
         // 计算水平摆动
         const horizontalOffset = Math.sin(this.time) * this.wobbleAmplitude;
         
-        // 更新位置 - 保持垂直上升，只在水平方向摆动
+        // 新位置 - 保持垂直上升，只在水平方向摆动
         this.x += horizontalOffset;
         this.y -= this.speed;
         
@@ -371,7 +448,7 @@ class RisingFirework {
             particle.draw();
         });
 
-        // 绘制主体火花 - 增加大小
+        // 绘制主体花 - 增加大小
         ctx.beginPath();
         ctx.arc(this.x, this.y, 3, 0, Math.PI * 2);
         ctx.fillStyle = this.color;
@@ -407,7 +484,7 @@ function randomColor() {
 
 // 添加新的变量来跟踪用户交互
 let userInteractionTimer = null;
-const CLICK_COOLDOWN = 100; // 低点击冷却时间到100ms
+const CLICK_COOLDOWN = 100; // 点击冷却时间到100ms
 let lastClickTime = Date.now();
 
 function animate() {
@@ -493,7 +570,7 @@ function autoLaunch() {
 canvas.addEventListener('click', (e) => {
     e.preventDefault();
     const enabledColors = getEnabledColorTypes();
-    if (enabledColors.length === 0) return; // 如果没有启用的颜色类型，不生成烟花
+    if (enabledColors.length === 0) return; // 如果没有启用的颜色类，不生成花
 
     const rect = canvas.getBoundingClientRect();
     const clickX = e.clientX - rect.left;
@@ -557,9 +634,9 @@ particleCountInput.addEventListener('input', (e) => {
 // 发射间隔输入事件监听
 launchIntervalInput.addEventListener('input', (e) => {
     config.launchInterval = parseInt(e.target.value); // 更新发射间隔
-    updateValueDisplay(launchIntervalInput, 'launchIntervalValue'); // 新显示
-    clearInterval(autoLaunchInterval); // 清除自动发射间隔
-    autoLaunchInterval = setInterval(autoLaunch, config.launchInterval); // 置新的自动发射间隔
+    updateValueDisplay(launchIntervalInput, 'launchIntervalValue'); // 新示
+    clearInterval(autoLaunchInterval); // 清除自动��射间隔
+    autoLaunchInterval = setInterval(autoLaunch, config.launchInterval); // 置新自动发射间隔
 });
 
 // 升速度输入事件监听
@@ -588,7 +665,7 @@ gravityInput.addEventListener('input', (e) => {
 
 // 心形效果切换事件监听
 heartEffectToggle.addEventListener('change', (e) => {
-    config.heartEffectEnabled = e.target.checked; // 更新心形效果启用状态
+    config.heartEffectEnabled = e.target.checked; // 更新心形效果启状态
 });
 
 // 获取声音相关元素
@@ -603,10 +680,10 @@ soundToggle.addEventListener('change', (e) => {
 // 声音量输入事件监听
 soundVolume.addEventListener('input', (e) => {
     config.volume = parseFloat(e.target.value); // 更新音量
-    updateValueDisplay(soundVolume, 'soundVolumeValue'); // 更新显
+    updateValueDisplay(soundVolume, 'soundVolumeValue'); // 更新显示
 });
 
-// 窗口大小改变事件监听
+// 窗口大小改变件监听
 window.addEventListener('resize', () => {
     canvas.width = window.innerWidth; // 更新画布宽度
     canvas.height = window.innerHeight; // 更新画布高度
@@ -652,7 +729,7 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('orientationchange', resizeCanvas);
 
-// 初始化时调用一次
+// 初始化时调用次
 resizeCanvas();
 
 // 添加阻止默认滚动行为
@@ -678,7 +755,7 @@ const interactionTimeoutInput = document.getElementById('interactionTimeout');
 function initializeSettings() {
     // ... existing settings initialization ...
     
-    // 设置交互超时时间的初始值
+    // 设置互超时时间的初始值
     interactionTimeoutInput.value = config.interactionTimeout;
     updateValueDisplay(interactionTimeoutInput, 'interactionTimeoutValue');
     
@@ -708,9 +785,99 @@ secondaryExplosionChance.addEventListener('input', (e) => {
     updateValueDisplay(secondaryExplosionChance, 'secondaryExplosionChanceValue');
 });
 
-// 二级粒子比例事件监听
+// 二级粒子比事监听
 secondaryParticleRatio.addEventListener('input', (e) => {
     config.secondaryParticleRatio = parseInt(e.target.value) / 100;
     updateValueDisplay(secondaryParticleRatio, 'secondaryParticleRatioValue');
 });
+
+// 添加文���粒子生成函数
+function getTextParticles(text, x, y, fontSize, spacing) {
+    // 计算安全区域(屏幕中心70%的区域)
+    const safeArea = {
+        minX: window.innerWidth * 0.15,
+        maxX: window.innerWidth * 0.85,
+        minY: window.innerHeight * 0.15,
+        maxY: window.innerHeight * 0.85
+    };
+
+    // 检查位置是否在安全区域内
+    if (x < safeArea.minX || x > safeArea.maxX || 
+        y < safeArea.minY || y > safeArea.maxY) {
+        return []; // 如果不在安全区域内，返回空数组，不生成文字
+    }
+
+    const particles = [];
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    // 设置画布大小
+    ctx.font = `${fontSize}px Arial`;
+    const metrics = ctx.measureText(text);
+    const textWidth = metrics.width;
+    const textHeight = fontSize;
+    
+    // 调整位置确保文字在屏幕内
+    const safeX = Math.min(Math.max(x, textWidth / 2 + safeArea.minX), safeArea.maxX - textWidth / 2);
+    const safeY = Math.min(Math.max(y, textHeight / 2 + safeArea.minY), safeArea.maxY - textHeight / 2);
+    
+    canvas.width = textWidth;
+    canvas.height = textHeight;
+    
+    // 绘制文字
+    ctx.font = `${fontSize}px Arial`;
+    ctx.fillStyle = 'white';
+    ctx.textBaseline = 'top';
+    ctx.fillText(text, 0, 0);
+    
+    // 获取像素数据
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    const pixels = imageData.data;
+    
+    // 生成粒子，使用安全的坐标
+    for (let i = 0; i < pixels.length; i += 4) {
+        if (pixels[i + 3] > 128) { // 不透明度大于128的像素
+            const px = (i / 4) % canvas.width;
+            const py = Math.floor((i / 4) / canvas.width);
+            
+            if (px % spacing === 0 && py % spacing === 0) {
+                const particle = new Particle(
+                    safeX + px - textWidth / 2,
+                    safeY + py - textHeight / 2,
+                    config.textParticles.color,
+                    Math.random() * Math.PI * 2,
+                    0.1,
+                    5
+                );
+                particle.isTextParticle = true;
+                particles.push(particle);
+            }
+        }
+    }
+    
+    return particles;
+}
+
+// 在设置面板中添加文字控制选项
+function initializeSettings() {
+    // ... 现有代码 ...
+    
+    // 添加文字效果控制
+    const textToggle = document.createElement('div');
+    textToggle.className = 'setting-item';
+    textToggle.innerHTML = `
+        <label>文字效果:</label>
+        <input type="checkbox" id="textEffectToggle" ${config.textParticles.enabled ? 'checked' : ''}>
+    `;
+    settingsContent.appendChild(textToggle);
+    
+    document.getElementById('textEffectToggle').addEventListener('change', (e) => {
+        config.textParticles.enabled = e.target.checked;
+    });
+}
+
+// 在文件顶部添加新的变量来跟踪文字位置
+const textPositionHistory = [];
+const TEXT_POSITION_COOLDOWN = 2000; // 文字位置冷却时间(毫秒)
+const TEXT_POSITION_THRESHOLD = 400; // 增加判断位置重复的距离阈值到400像素
 

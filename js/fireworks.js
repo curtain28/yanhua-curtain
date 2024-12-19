@@ -57,23 +57,65 @@ function getTargetY() {
 // 粒子类
 class Particle {
     constructor(x, y, color, angle, speed, life) {
-        this.x = x; // 粒子x坐标
-        this.y = y; // 粒子y坐标
-        this.color = color; // 粒子颜色
-        this.angle = angle; // 粒子角度
-        this.speed = speed; // 粒子速度
-        this.life = life;       // 当前生命值
-        this.opacity = 1;       // 不透明度
-        this.history = []; // 粒子历史轨迹
+        this.x = x;
+        this.y = y;
+        this.color = color;
+        this.angle = angle;
+        this.speed = speed;
+        this.life = life;
+        this.opacity = 0;  // 初始透明度为0
+        this.history = [];
+        this.fadeSpeed = 0.02;
+        this.initialSpeed = speed;
+        this.stayTime = 1;      // 停留时间1秒
+        this.createTime = Date.now();
+        this.initialX = x;      // 记���初始位置
+        this.initialY = y;
+        this.targetX = x;       // 目标位置
+        this.targetY = y;
+        this.appearProgress = 0; // 出现进度
+        this.fadeOutSpeed = 0.5 + Math.random() * 0.5;  // 随机化消散速度
+        this.fadeOutAngle = Math.random() * Math.PI * 2;  // 随机消散方向
     }
 
     update() {
         if (this.isTextParticle) {
-            // 文字粒子的特殊运动
-            this.speed *= 0.99; // 更慢的减速
-            this.life -= config.fadeSpeed / 200; // 更慢的消失
+            const existTime = (Date.now() - this.createTime) / 1000;
+            
+            if (existTime < 0.3) {  // 淡入阶段
+                this.appearProgress = Math.min(1, existTime / 0.3);
+                this.opacity = this.appearProgress;
+                
+                // 使用缓动函数使移动更平滑
+                const easeProgress = this.easeOutCubic(this.appearProgress);
+                this.x = this.initialX + (this.targetX - this.initialX) * easeProgress;
+                this.y = this.initialY + (this.targetY - this.initialY) * easeProgress;
+            } else if (existTime < this.stayTime) {  // 停留阶段
+                this.opacity = 1;
+                // 添加轻微的漂浮效果
+                const floatTime = existTime * 2;
+                this.x = this.targetX + Math.sin(floatTime) * 0.5;
+                this.y = this.targetY + Math.cos(floatTime) * 0.5;
+            } else {  // 淡出阶段
+                const fadeTime = existTime - this.stayTime;
+                const fadeProgress = Math.min(1, fadeTime / 1.5);
+                
+                // 使用二次方增加非线性效果
+                const spread = Math.pow(fadeProgress, 2) * 100;
+                const spreadX = Math.cos(this.fadeOutAngle) * spread * this.fadeOutSpeed;
+                const spreadY = Math.sin(this.fadeOutAngle) * spread * this.fadeOutSpeed;
+                
+                this.x = this.targetX + spreadX;
+                this.y = this.targetY + spreadY + fadeProgress * 20;
+                
+                this.opacity = Math.max(0, 1 - Math.pow(fadeProgress, 1.5));
+                
+                if (this.opacity <= 0) {
+                    this.life = 0;
+                }
+            }
         } else {
-            // 原有的粒子更新逻辑
+            // 恢复普通烟花粒子的更新逻辑
             this.history.push({ x: this.x, y: this.y });
             if (this.history.length > 10) this.history.shift();
             
@@ -83,6 +125,11 @@ class Particle {
             this.life -= config.fadeSpeed / 100;
             this.opacity = Math.max(0, this.life / 2);
         }
+    }
+
+    // 添加缓动函数
+    easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
     }
 
     draw() {
@@ -593,7 +640,7 @@ canvas.addEventListener('click', (e) => {
 
 let autoLaunchInterval = null; // 自动发射间隔
 
-// 点击事件监听
+// ���击事件监听
 document.addEventListener('click', () => {
     if (startPrompt.style.display !== 'none') {
         startPrompt.style.display = 'none'; // 隐藏开始提示
@@ -616,7 +663,7 @@ const heartEffectToggle = document.getElementById('heartEffectToggle');
 
 // 设置切换事监听
 settingsToggle.addEventListener('click', () => {
-    const isHidden = settingsContent.style.display === 'none' || !settingsContent.style.display; // 判断��置是否隐藏
+    const isHidden = settingsContent.style.display === 'none' || !settingsContent.style.display; // 判断置是否隐藏
     settingsContent.style.display = isHidden ? 'block' : 'none'; // 切换显示状态
 });
 
@@ -804,7 +851,7 @@ function getTextParticles(text, x, y, fontSize, spacing) {
     // 检查位置是否在安全区域内
     if (x < safeArea.minX || x > safeArea.maxX || 
         y < safeArea.minY || y > safeArea.maxY) {
-        return []; // 如果不在安全区域内，返回空数组，不生成文字
+        return []; // 如果不在安全区域内，���回空数组，不生成文字
     }
 
     const particles = [];
@@ -837,44 +884,49 @@ function getTextParticles(text, x, y, fontSize, spacing) {
     // 为每个文字生成渐变色
     const gradientColors = getRandomGradientColors();
     
-    // 生成粒子时使用渐变色
+    // 修改粒子生成部分
     for (let i = 0; i < pixels.length; i += 4) {
         if (pixels[i + 3] > 128) {
             const px = (i / 4) % canvas.width;
             const py = Math.floor((i / 4) / canvas.width);
             
             if (px % spacing === 0 && py % spacing === 0) {
-                // 计算当前像素在文字中的相对位置（0-1之间）
+                // 计算渐变色
                 const progress = px / canvas.width;
-                
-                // 根据位置计算渐变色
                 const hue1 = parseInt(gradientColors.start.match(/\d+/)[0]);
                 const hue2 = parseInt(gradientColors.end.match(/\d+/)[0]);
-                
-                // 计算色相差值
                 let hueDiff = hue2 - hue1;
                 if (Math.abs(hueDiff) > 180) {
                     hueDiff = hueDiff > 0 ? hueDiff - 360 : hueDiff + 360;
                 }
-                
-                // 计算当前颜色
                 const currentHue = (hue1 + hueDiff * progress + 360) % 360;
                 const color = `hsl(${currentHue}, 90%, 55%)`;
+
+                // 减小初始随机偏移范围
+                const randomRadius = 20 + Math.random() * 30;
+                const randomAngle = Math.random() * Math.PI * 2;
                 
                 const particle = new Particle(
-                    safeX + px - textWidth / 2,
-                    safeY + py - textHeight / 2,
+                    x + Math.cos(randomAngle) * randomRadius,  // 随机圆形区域内的起始位置
+                    y + Math.sin(randomAngle) * randomRadius,
                     color,
                     Math.random() * Math.PI * 2,
-                    0.1,
+                    0.1 + Math.random() * 0.2,
                     5
                 );
+                
+                // 设置目标位置（添加细微偏移）
+                particle.targetX = x + px - textWidth / 2 + (Math.random() - 0.5) * 2;
+                particle.targetY = y + py - textHeight / 2 + (Math.random() - 0.5) * 2;
+                particle.initialX = particle.x;
+                particle.initialY = particle.y;
+                
                 particle.isTextParticle = true;
                 particles.push(particle);
             }
         }
     }
-    
+
     return particles;
 }
 
@@ -911,7 +963,7 @@ textEffectToggle.addEventListener('change', (e) => {
     config.textParticles.enabled = e.target.checked;
 });
 
-// 文字生成概率事件监听
+// 文���生成概率事件监听
 textProbability.addEventListener('input', (e) => {
     config.textParticles.probability = parseInt(e.target.value) / 100;
     updateValueDisplay(textProbability, 'textProbabilityValue');

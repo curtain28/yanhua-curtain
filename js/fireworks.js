@@ -1,4 +1,167 @@
-// 获取画布元素
+// 在文件开头添加颜色相关的配置
+const colorConfig = {
+    // 预设的鲜艳颜色组合
+    colorSchemes: [
+        // 暖色系
+        ['#FF3B30', '#FF9500', '#FFCC00', '#FF6B6B', '#FFA07A', '#FFB6C1'],
+        // 冷色系
+        ['#00FFFF', '#1E90FF', '#4169E1', '#0000FF', '#000080', '#4682B4'],
+        // 粉色系
+        ['#FF69B4', '#FF1493', '#DB7093', '#FFB6C1', '#FFC0CB', '#FFE4E1'],
+        // 金色系
+        ['#FFD700', '#FFA500', '#DAA520', '#B8860B', '#CD853F', '#D2691E'],
+        // 紫色系
+        ['#9B30FF', '#8A2BE2', '#9370DB', '#BA55D3', '#DDA0DD', '#EE82EE'],
+        // 绿色系
+        ['#32CD32', '#98FB98', '#90EE90', '#00FA9A', '#3CB371', '#2E8B57'],
+        // 中国红系
+        ['#FF2400', '#FF0000', '#FF3300', '#FF4500', '#FF6347', '#FF7F50']
+    ],
+    
+    // 渐变色配置
+    hslConfig: {
+        // HSL渐变的色相范围
+        hueRanges: [
+            [0, 60],    // 红到黄
+            [180, 240], // 青到蓝
+            [300, 360], // 紫到红
+            [45, 105],  // 橙到绿
+            [270, 330]  // 紫到粉
+        ],
+        minSaturation: 85,  // 最小饱和度
+        maxSaturation: 100, // 最大饱和度
+        minLightness: 45,   // 最小亮度
+        maxLightness: 65    // 最大亮度
+    }
+};
+
+// 添加新的颜色生成函数
+function getRandomColorScheme() {
+    return colorConfig.colorSchemes[Math.floor(Math.random() * colorConfig.colorSchemes.length)];
+}
+
+// 修改随机渐变颜色函数
+function randomGradientColor() {
+    // 70%概率使用HSL渐变，30%概率使用预设方案
+    if (Math.random() < 0.7) {
+        // HSL渐变
+        const hueRange = colorConfig.hslConfig.hueRanges[
+            Math.floor(Math.random() * colorConfig.hslConfig.hueRanges.length)
+        ];
+        
+        const baseHue = hueRange[0] + Math.random() * (hueRange[1] - hueRange[0]);
+        // 在选定范围内生成结束色相
+        const hueDiff = (Math.random() * 30 + 15) * (Math.random() < 0.5 ? 1 : -1);
+        const closeHue = (baseHue + hueDiff + 360) % 360;
+        
+        // 随机生成饱和度和亮度，但保持两端一致以确保协调
+        const saturation = colorConfig.hslConfig.minSaturation + 
+            Math.random() * (colorConfig.hslConfig.maxSaturation - colorConfig.hslConfig.minSaturation);
+        const lightness = colorConfig.hslConfig.minLightness + 
+            Math.random() * (colorConfig.hslConfig.maxLightness - colorConfig.hslConfig.minLightness);
+
+        return {
+            type: 'hsl',
+            startColor: `hsl(${baseHue}, ${saturation}%, ${lightness}%)`,
+            endColor: `hsl(${closeHue}, ${saturation}%, ${lightness}%)`
+        };
+    } else {
+        // 预设方案
+        const scheme = getRandomColorScheme();
+        // 随机选择一个子序列，确保颜色更协调
+        const length = Math.min(4, scheme.length);
+        const start = Math.floor(Math.random() * (scheme.length - length));
+        const selectedColors = scheme.slice(start, start + length);
+        
+        return {
+            type: 'preset',
+            scheme: selectedColors,
+            startColor: selectedColors[0],
+            endColor: selectedColors[selectedColors.length - 1]
+        };
+    }
+}
+
+// 添加彩虹渐变效果生成函数
+function generateRainbowColors(particleCount) {
+    const colors = [];
+    const scheme = getRandomColorScheme();
+    
+    for (let i = 0; i < particleCount; i++) {
+        const index = (i / particleCount) * (scheme.length - 1);
+        const leftIndex = Math.floor(index);
+        const rightIndex = Math.ceil(index);
+        const t = index - leftIndex;
+        
+        // 在两个颜色之间进行插值
+        const color1 = scheme[leftIndex];
+        const color2 = scheme[rightIndex];
+        
+        colors.push(interpolateColors(color1, color2, t));
+    }
+    
+    return colors;
+}
+
+// 修改颜色插值函数，添加HSL插值支持
+function interpolateColors(color1, color2, t) {
+    // 检查是否为HSL颜色
+    if (color1.startsWith('hsl') && color2.startsWith('hsl')) {
+        const hsl1 = parseHSL(color1);
+        const hsl2 = parseHSL(color2);
+        
+        // 处理色相的特殊情况
+        let hueDiff = hsl2.h - hsl1.h;
+        if (Math.abs(hueDiff) > 180) {
+            hueDiff = hueDiff > 0 ? hueDiff - 360 : hueDiff + 360;
+        }
+        
+        const h = (hsl1.h + hueDiff * t + 360) % 360;
+        const s = hsl1.s + (hsl2.s - hsl1.s) * t;
+        const l = hsl1.l + (hsl2.l - hsl1.l) * t;
+        
+        return `hsl(${h}, ${s}%, ${l}%)`;
+    }
+    
+    // RGB颜色插值
+    const rgb1 = parseRGB(color1);
+    const rgb2 = parseRGB(color2);
+    
+    const r = Math.round(rgb1.r + (rgb2.r - rgb1.r) * t);
+    const g = Math.round(rgb1.g + (rgb2.g - rgb1.g) * t);
+    const b = Math.round(rgb1.b + (rgb2.b - rgb1.b) * t);
+    
+    return `rgb(${r},${g},${b})`;
+}
+
+// 添加HSL颜色解析函数
+function parseHSL(color) {
+    const matches = color.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+    return {
+        h: parseInt(matches[1]),
+        s: parseInt(matches[2]),
+        l: parseInt(matches[3])
+    };
+}
+
+// 添加RGB颜色解析函数
+function parseRGB(color) {
+    if (color.startsWith('#')) {
+        return {
+            r: parseInt(color.slice(1, 3), 16),
+            g: parseInt(color.slice(3, 5), 16),
+            b: parseInt(color.slice(5, 7), 16)
+        };
+    }
+    const matches = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+    return {
+        r: parseInt(matches[1]),
+        g: parseInt(matches[2]),
+        b: parseInt(matches[3])
+    };
+}
+
+// 获取画布素
 const canvas = document.getElementById('fireworks');
 // 获取2D绘图上下文
 const ctx = canvas.getContext('2d');
@@ -25,12 +188,12 @@ const config = {
     secondaryParticleRatio: 0.2, // 二级粒子比例: 20%
     textParticles: {
         enabled: true,          // 文字效果: 开启
-        probability: 0.5,       // 文字生成概率: 50%
+        probability: 0.1,       // 文字生成概率: 10%
         texts: [  
             "新年快乐"
         ],
         fontSize: 120,          // 文字大小: 120
-        color: "#ff8888",       // 恢复原来的颜色设置
+        color: "#ff8888",       // 文字颜色设置
         particleSize: 2,
         particleSpacing: 3
     }
@@ -167,8 +330,8 @@ class Particle {
 
     drawHeart() {
         ctx.save(); // 保存当前状态
-        ctx.translate(this.x, this.y); // 平移到粒子位置
-        ctx.scale(0.1, 0.1); // 缩放
+        ctx.translate(this.x, this.y); // 平移到子位置
+        ctx.scale(0.1, 0.1); // ���放
         ctx.beginPath(); // 开始路径
         ctx.moveTo(0, -50); // 移动到心形顶部
         ctx.bezierCurveTo(-25, -80, -50, -50, 0, 0); // 绘制左半边
@@ -177,19 +340,6 @@ class Particle {
         ctx.fill(); // 填充
         ctx.restore(); // 恢复状态
     }
-}
-
-// 添加生成随机渐变颜色的函数
-function randomGradientColor() {
-    // 生成一个随机色相
-    const baseHue = Math.random() * 360;
-    // 生成一个接近的色相，异在150度以内
-    const closeHue = (baseHue + (Math.random() * 150 - 15)) % 360;
-
-    return {
-        startColor: `hsl(${baseHue}, 100%, 50%)`,
-        endColor: `hsl(${closeHue}, 100%, 50%)`
-    };
 }
 
 // 烟花类
@@ -213,28 +363,52 @@ class Firework {
             const offsetX = (Math.random() - 0.5) * 20;
             const offsetY = (Math.random() - 0.5) * 20;
 
-            // 颜色渐变计算
-            const t = i / config.particleCount;
-            const startHue = parseInt(gradientColors.startColor.match(/\d+/)[0]);
-            const endHue = parseInt(gradientColors.endColor.match(/\d+/)[0]);
-            
-            let hueDiff = endHue - startHue;
-            if (Math.abs(hueDiff) > 180) {
-                hueDiff = hueDiff > 0 ? hueDiff - 360 : hueDiff + 360;
+            let particleColor;
+            if (gradientColors.type === 'hsl') {
+                // HSL渐变计算
+                const t = i / config.particleCount;
+                const startHue = parseInt(gradientColors.startColor.match(/\d+/)[0]);
+                const endHue = parseInt(gradientColors.endColor.match(/\d+/)[0]);
+                
+                let hueDiff = endHue - startHue;
+                if (Math.abs(hueDiff) > 180) {
+                    hueDiff = hueDiff > 0 ? hueDiff - 360 : hueDiff + 360;
+                }
+                
+                const hue = (startHue + hueDiff * t + 360) % 360;
+                particleColor = `hsl(${hue}, 100%, 50%)`;
+            } else {
+                // 预设方案颜色插值
+                const scheme = gradientColors.scheme;
+                const t = i / config.particleCount;
+                const index = t * (scheme.length - 1);
+                const leftIndex = Math.floor(index);
+                const rightIndex = Math.ceil(index);
+                const mixT = index - leftIndex;
+                
+                particleColor = interpolateColors(
+                    scheme[leftIndex], 
+                    scheme[rightIndex], 
+                    mixT
+                );
             }
-            
-            const hue = (startHue + hueDiff * t + 360) % 360;
-            const particleColor = `hsl(${hue}, 100%, 50%)`;
 
-            this.particles.push(new Particle(this.x + offsetX, this.y + offsetY, particleColor, angle, speed, life));
+            this.particles.push(new Particle(
+                this.x + offsetX, 
+                this.y + offsetY, 
+                particleColor, 
+                angle, 
+                speed, 
+                life
+            ));
         }
 
-        // 修改二级烟花轨道
+        // 修改二级烟花颜色
         if (config.secondaryEnabled && Math.random() < config.secondaryChance) {
-            // 随机生成1-3个二级烟花
             const count = Math.floor(Math.random() * 3) + 1;
+            const secondaryScheme = getRandomColorScheme();
+            
             for (let i = 0; i < count; i++) {
-                // 随机角度，但避免向下发射
                 const angle = (Math.random() * 1.5 + 0.25) * Math.PI;
                 const speed = 4 + Math.random() * 3;
                 
@@ -243,7 +417,7 @@ class Firework {
                     y: this.y,
                     vx: Math.cos(angle) * speed,
                     vy: Math.sin(angle) * speed - 2,
-                    color: gradientColors.startColor,
+                    color: secondaryScheme[Math.floor(Math.random() * secondaryScheme.length)],
                     timer: 20 + Math.random() * 15,
                     hasExploded: false,
                     trail: []
@@ -374,7 +548,7 @@ class Firework {
     }
 }
 
-// 添加尾迹粒子类
+// 添加尾迹粒类
 class TrailParticle {
     constructor(x, y, color) {
         this.x = x;
@@ -407,7 +581,7 @@ class RisingFirework {
         this.y = y;
         this.targetY = Math.max(0, Math.min(targetY, canvas.height / 3));
         this.speed = speed || config.risingSpeed;
-        this.color = `hsl(${Math.random() * 360}, 50%, 50%)`;
+        this.color = `hsl(${Math.random() * 360}, 100%, 50%)`;
         this.trailParticles = [];
         this.soundPlayed = false;
         
@@ -466,7 +640,7 @@ class RisingFirework {
             }
         });
 
-        // 更新上一帧位置
+        // 新上一帧位置
         this.lastX = this.x;
         this.lastY = this.y;
 
@@ -663,7 +837,7 @@ const heartEffectToggle = document.getElementById('heartEffectToggle');
 // 设置换事监听
 settingsToggle.addEventListener('click', () => {
     const isHidden = settingsContent.style.display === 'none' || !settingsContent.style.display; // 判断置是否隐藏
-    settingsContent.style.display = isHidden ? 'block' : 'none'; // 切换显示状
+    settingsContent.style.display = isHidden ? 'block' : 'none'; // 切换示状
 });
 
 // 更新值显示
@@ -735,7 +909,7 @@ window.addEventListener('resize', () => {
     canvas.height = window.innerHeight; // 更新画布高度
 });
 
-// 修改事件监听以支持触摸事件
+// 修改事件监听以持触摸事件
 canvas.addEventListener('touchstart', handleTouch);
 canvas.addEventListener('click', handleClick);
 
@@ -938,7 +1112,7 @@ mainFontSize.addEventListener('input', (e) => {
     updateValueDisplay(mainFontSize, 'mainFontSizeValue');
 });
 
-// 在文件顶部��加一个变量来跟踪当前文字索引
+// 在文件顶部加一个变量来跟踪当前文字索引
 let currentTextIndex = 0;
 
 // 在文件顶部添加一个生成随机HSL颜色的函数

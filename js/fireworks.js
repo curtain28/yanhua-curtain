@@ -331,7 +331,7 @@ class Particle {
     drawHeart() {
         ctx.save(); // 保存当前状态
         ctx.translate(this.x, this.y); // 平移到子位置
-        ctx.scale(0.1, 0.1); // ���放
+        ctx.scale(0.1, 0.1); // 放
         ctx.beginPath(); // 开始路径
         ctx.moveTo(0, -50); // 移动到心形顶部
         ctx.bezierCurveTo(-25, -80, -50, -50, 0, 0); // 绘制左半边
@@ -428,6 +428,11 @@ class Firework {
         // 修改文字粒子生成逻辑
         if (config.textParticles.enabled && Math.random() < config.textParticles.probability) {
             const currentTime = Date.now();
+            
+            // 检查是否在程序启动的前五秒内
+            if (programStartTime && currentTime - programStartTime < 5000) {
+                return; // 在前五秒内直接返回，不生成文字
+            }
             
             // 清理过期的位置记录
             while (textPositionHistory.length > 0 && 
@@ -1161,4 +1166,16 @@ document.fonts.load('10px CustomFont').then(() => {
 }).catch(err => {
     console.warn('自定义字体加载失败:', err);
 });
+
+// 在文件顶部添加一个变量来跟踪程序启动时间
+let programStartTime = null;
+
+// 修改 startPrompt 的点击事件处理
+document.addEventListener('click', () => {
+    if (startPrompt.style.display !== 'none') {
+        startPrompt.style.display = 'none'; // 隐藏开始提示
+        programStartTime = Date.now(); // 记录程序启动时间
+        autoLaunchInterval = setInterval(autoLaunch, config.launchInterval); // 设置自动发射间隔
+    }
+}, { once: true });
 

@@ -27,8 +27,7 @@ const config = {
         enabled: true,          // 文字效果: 开启
         probability: 0.5,       // 文字生成概率: 50%
         texts: [  
-            "新年快乐",
-            "婷婷"
+            "新年快乐"
         ],
         fontSize: 120,          // 文字大小: 120
         color: "#ff8888",       // 恢复原来的颜色设置
@@ -78,32 +77,28 @@ class Particle {
         if (this.isTextParticle) {
             const existTime = (Date.now() - this.createTime) / 1000;
             
-            if (existTime < 0.3) {  // 淡入阶段
-                this.appearProgress = Math.min(1, existTime / 0.3);
-                this.opacity = this.appearProgress;
+            if (existTime < 1.5) {  // 延长聚集时间到1.5秒
+                this.opacity = Math.min(1, existTime * 1.2); // 从 2 改为 1.2，使透明度变化更缓慢
                 
-                // 使用缓动函数使移动更平滑
-                const easeProgress = this.easeOutCubic(this.appearProgress);
-                this.x = this.initialX + (this.targetX - this.initialX) * easeProgress;
-                this.y = this.initialY + (this.targetY - this.initialY) * easeProgress;
-            } else if (existTime < this.stayTime) {  // 停留阶段
+                this.appearProgress = this.easeOutElastic(Math.min(1, existTime / 1.5));
+                
+                this.x = this.initialX + (this.targetX - this.initialX) * this.appearProgress;
+                this.y = this.initialY + (this.targetY - this.initialY) * this.appearProgress;
+            } else if (existTime < this.stayTime + 1.5) {  // 停留阶段
                 this.opacity = 1;
-                // 添加轻微的漂浮效果
                 const floatTime = existTime * 2;
                 this.x = this.targetX + Math.sin(floatTime) * 0.5;
                 this.y = this.targetY + Math.cos(floatTime) * 0.5;
             } else {  // 淡出阶段
-                const fadeTime = existTime - this.stayTime;
+                const fadeTime = existTime - (this.stayTime + 1.5);
                 const fadeProgress = Math.min(1, fadeTime / 1.5);
                 
-                // 缩减消散范围，使用更温和的扩散效果
-                const spread = Math.pow(fadeProgress, 2) * 30; // 将100改为30
+                const spread = Math.pow(fadeProgress, 2) * 30;
                 const spreadX = Math.cos(this.fadeOutAngle) * spread * this.fadeOutSpeed;
                 const spreadY = Math.sin(this.fadeOutAngle) * spread * this.fadeOutSpeed;
                 
-                // 减小向下的运动
                 this.x = this.targetX + spreadX;
-                this.y = this.targetY + spreadY + fadeProgress * 8; // 将20改为8
+                this.y = this.targetY + spreadY + fadeProgress * 8;
                 
                 this.opacity = Math.max(0, 1 - Math.pow(fadeProgress, 1.5));
                 
@@ -127,6 +122,13 @@ class Particle {
     // 添加缓动函数
     easeOutCubic(t) {
         return 1 - Math.pow(1 - t, 3);
+    }
+
+    // 添加弹性缓动函数
+    easeOutElastic(t) {
+        const p = 0.8;
+        const amplitude = 0.5;
+        return amplitude * Math.pow(2, -8 * t) * Math.sin((t - p / 4) * (2 * Math.PI) / p) + 1;
     }
 
     draw() {
@@ -526,7 +528,7 @@ function randomColor() {
     return `rgb(${r},${g},${b})`; // 返回RGB颜色
 }
 
-// 添加新的变量来跟踪用户交互
+// 添加新变量来跟踪用户交互
 let userInteractionTimer = null;
 const CLICK_COOLDOWN = 100; // 点击冷却时间到100ms
 let lastClickTime = Date.now();
@@ -795,7 +797,7 @@ settingsToggle.addEventListener('touchstart', (e) => {
 // 获取交互超时时间输入元素
 const interactionTimeoutInput = document.getElementById('interactionTimeout');
 
-// 在文件末尾添加新的控制逻辑
+// 在文件末尾添加新的制逻辑
 const secondaryExplosionToggle = document.getElementById('secondaryExplosionToggle');
 const secondaryExplosionChance = document.getElementById('secondaryExplosionChance');
 const secondaryParticleRatio = document.getElementById('secondaryParticleRatio');
@@ -827,7 +829,7 @@ function getTextParticles(text, x, y, fontSize, spacing) {
         maxY: window.innerHeight * 0.85
     };
 
-    // 查��置是否在安全区域内
+    // 查置是否在安全域内
     if (x < safeArea.minX || x > safeArea.maxX || 
         y < safeArea.minY || y > safeArea.maxY) {
         return []; // 如果不在安全区域内，回空数组，不生成文字
@@ -881,12 +883,12 @@ function getTextParticles(text, x, y, fontSize, spacing) {
                 const currentHue = (hue1 + hueDiff * progress + 360) % 360;
                 const color = `hsl(${currentHue}, 90%, 55%)`;
 
-                // 减小初始随机偏移范围
-                const randomRadius = 20 + Math.random() * 30;
+                // 增大初始随机范围，使粒子从更远的地方聚集
+                const randomRadius = 50 + Math.random() * 100;
                 const randomAngle = Math.random() * Math.PI * 2;
                 
                 const particle = new Particle(
-                    x + Math.cos(randomAngle) * randomRadius,  // 随机圆形区域内的起始位置
+                    x + Math.cos(randomAngle) * randomRadius,  // 更大范围的随机起始位置
                     y + Math.sin(randomAngle) * randomRadius,
                     color,
                     Math.random() * Math.PI * 2,
@@ -936,7 +938,7 @@ mainFontSize.addEventListener('input', (e) => {
     updateValueDisplay(mainFontSize, 'mainFontSizeValue');
 });
 
-// 在文件顶部添加一个变量来跟踪当前文字索引
+// 在文件顶部��加一个变量来跟踪当前文字索引
 let currentTextIndex = 0;
 
 // 在文件顶部添加一个生成随机HSL颜色的函数

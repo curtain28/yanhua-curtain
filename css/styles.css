@@ -15,7 +15,6 @@ canvas {
     background: rgba(0, 0, 0, 0.7);
     border-radius: 8px;
     z-index: 1000;
-    min-width: 300px;
     display: flex;
     flex-direction: column;
     align-items: flex-end;

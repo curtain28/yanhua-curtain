@@ -401,7 +401,7 @@ class Firework {
 
         // 修改次级烟花逻辑，不计入最大数量限制
         if (config.secondaryEnabled && Math.random() < config.secondaryChance) {
-            // 增加次级爆炸的数量上限
+            // 增加次级爆���的数量上限
             const maxSecondaryCount = 3;
             const count = Math.floor(Math.random() * maxSecondaryCount) + 1;
             const secondaryScheme = getRandomColorScheme();
@@ -666,7 +666,7 @@ class RisingFirework {
     }
 
     draw() {
-        // 绘制尾迹粒子
+        // 绘制尾迹��子
         this.trailParticles.forEach(particle => {
             particle.draw();
         });
@@ -846,15 +846,19 @@ const heartEffectToggle = document.getElementById('heartEffectToggle');
 // 设置换事监听
 settingsToggle.addEventListener('click', () => {
     // 切换设置面板显示状态
-    const isHidden = settingsContent.style.display === 'none' || !settingsContent.style.display;
-    settingsContent.style.display = isHidden ? 'block' : 'none';
+    const isHidden = !settingsContent.classList.contains('show');
     
     // 重新触发动画
     settingsToggle.classList.remove('rotating');
-    // 强制重绘
     void settingsToggle.offsetWidth;
-    // 添加动画类
     settingsToggle.classList.add('rotating');
+    
+    // 使用类名来控制显示状态
+    if (isHidden) {
+        settingsContent.classList.add('show');
+    } else {
+        settingsContent.classList.remove('show');
+    }
 });
 
 // 单独处理动画结束事件

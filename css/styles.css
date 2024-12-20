@@ -57,14 +57,14 @@ canvas {
 
 /* 设置内容面板样式 */
 .settings-content {
-    display: none;
+    display: block;
     background: linear-gradient(145deg, rgba(31, 34, 44, 0.95), rgba(22, 24, 32, 0.95));
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-radius: 16px;
-    padding: 20px;
+    border-radius: 12px;
+    padding: 12px;
     margin-top: 0;
-    width: 300px;
+    width: 260px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.08);
     overflow-y: auto;
@@ -72,14 +72,27 @@ canvas {
     position: absolute;
     top: 0;
     right: 0;
+    
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px) scale(0.95);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: top right;
+}
+
+/* 显示状态的样式 */
+.settings-content.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0) scale(1);
 }
 
 /* 设置组样式 */
 .settings-group {
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-    border-radius: 12px;
-    padding: 16px;
-    margin-bottom: 16px;
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 12px;
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -90,8 +103,8 @@ canvas {
 /* 标题样式 */
 .settings-group-title {
     color: rgba(255, 255, 255, 0.95);
-    font-size: 15px;
-    margin-bottom: 16px;
+    font-size: 14px;
+    margin-bottom: 12px;
     font-weight: 600;
     letter-spacing: 0.5px;
     text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
@@ -99,7 +112,7 @@ canvas {
 
 /* 设置项样式 */
 .setting-item {
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     color: #fff;
 }
 
@@ -110,8 +123,8 @@ canvas {
 /* 标签样式 */
 .setting-item label {
     display: block;
-    margin-bottom: 8px;
-    font-size: 13px;
+    margin-bottom: 6px;
+    font-size: 12px;
     color: rgba(255, 255, 255, 0.75);
     font-weight: 500;
 }
@@ -146,10 +159,10 @@ canvas {
 /* 数值显示样式 */
 .setting-item span {
     display: inline-block;
-    margin-left: 12px;
-    font-size: 12px;
+    margin-left: 8px;
+    font-size: 11px;
     color: rgba(255, 255, 255, 0.7);
-    min-width: 30px;
+    min-width: 28px;
     font-weight: 500;
 }
 

@@ -399,9 +399,11 @@ class Firework {
             ));
         }
 
-        // 修改���级烟花颜色
+        // 修改次级烟花逻辑，不计入最大数量限制
         if (config.secondaryEnabled && Math.random() < config.secondaryChance) {
-            const count = Math.floor(Math.random() * 3) + 1;
+            // 增加次级爆炸的数量上限
+            const maxSecondaryCount = 3;
+            const count = Math.floor(Math.random() * maxSecondaryCount) + 1;
             const secondaryScheme = getRandomColorScheme();
             
             for (let i = 0; i < count; i++) {
@@ -747,12 +749,13 @@ function createFirework(x, y) {
     lastClickTime = currentTime;
     lastClickForTextTime = currentTime; // 记录最后一次点击时间
 
-    if (fireworks.length + risingFireworks.length < config.maxFireworks + 5) {
-        // 停止自动发射
+    // 只计算主烟花的数量
+    const mainFireworksCount = fireworks.filter(fw => !fw.isSecondary).length + risingFireworks.length;
+    
+    if (mainFireworksCount < config.maxFireworks + 5) {
         clearInterval(autoLaunchInterval);
         autoLaunchEnabled = false;
         
-        // 创建新的烟花
         const risingFirework = new RisingFirework(
             x,
             canvas.height,
@@ -761,7 +764,6 @@ function createFirework(x, y) {
         );
         risingFireworks.push(risingFirework);
 
-        // 1秒后重新启动自动发射
         setTimeout(() => {
             if (!autoLaunchEnabled) {
                 autoLaunchEnabled = true;
@@ -771,13 +773,15 @@ function createFirework(x, y) {
     }
 }
 
-// 修改 autoLaunch 函数
+// 修改 autoLaunch 函数，只考虑主烟花的数量
 function autoLaunch() {
     if (!autoLaunchEnabled) return;
     
-    const maxFireworks = config.maxFireworks;
-    if (fireworks.length + risingFireworks.length < maxFireworks) {
-        const fireworksToLaunch = Math.min(maxFireworks - (fireworks.length + risingFireworks.length), 3);
+    // 只计算主烟花的数量
+    const mainFireworksCount = fireworks.filter(fw => !fw.isSecondary).length + risingFireworks.length;
+    
+    if (mainFireworksCount < config.maxFireworks) {
+        const fireworksToLaunch = Math.min(config.maxFireworks - mainFireworksCount, 3);
         for (let i = 0; i < fireworksToLaunch; i++) {
             const xPosition = Math.random() * canvas.width;
             const targetYPosition = getTargetY();
@@ -816,7 +820,7 @@ canvas.addEventListener('click', (e) => {
     }
 });
 
-let autoLaunchInterval = null; // 自动发射间隔
+let autoLaunchInterval = null; // 自动发���间隔
 
 // 点击事件监听
 document.addEventListener('click', () => {
@@ -976,7 +980,7 @@ settingsToggle.addEventListener('touchstart', (e) => {
 // 获取交互超时时间输入元素
 const interactionTimeoutInput = document.getElementById('interactionTimeout');
 
-// 在文件末尾��加新的制逻辑
+// 在文件末尾加新的制逻辑
 const secondaryExplosionToggle = document.getElementById('secondaryExplosionToggle');
 const secondaryExplosionChance = document.getElementById('secondaryExplosionChance');
 const secondaryParticleRatio = document.getElementById('secondaryParticleRatio');

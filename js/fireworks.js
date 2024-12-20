@@ -2,36 +2,32 @@
 const colorConfig = {
     // 预设的鲜艳颜色组合
     colorSchemes: [
-        // 暖色系
-        ['#FF3B30', '#FF9500', '#FFCC00', '#FF6B6B', '#FFA07A', '#FFB6C1'],
-        // 冷色系
-        ['#00FFFF', '#1E90FF', '#4169E1', '#0000FF', '#000080', '#4682B4'],
-        // 粉色系
-        ['#FF69B4', '#FF1493', '#DB7093', '#FFB6C1', '#FFC0CB', '#FFE4E1'],
-        // 金色系
-        ['#FFD700', '#FFA500', '#DAA520', '#B8860B', '#CD853F', '#D2691E'],
-        // 紫色系
-        ['#9B30FF', '#8A2BE2', '#9370DB', '#BA55D3', '#DDA0DD', '#EE82EE'],
-        // 绿色系
-        ['#32CD32', '#98FB98', '#90EE90', '#00FA9A', '#3CB371', '#2E8B57'],
-        // 中国红系
-        ['#FF2400', '#FF0000', '#FF3300', '#FF4500', '#FF6347', '#FF7F50']
+        // 霓虹粉色系
+        ['#FF1493', '#FF69B4', '#FF00FF', '#FFB6C1', '#FF00E1', '#FF66FF'],
+        // 霓虹金色系
+        ['#FFD700', '#FFA500', '#FF8C00', '#FFB90F', '#FFC125', '#FFD39B'],
+        // 霓虹紫色系
+        ['#9400D3', '#8A2BE2', '#9370DB', '#BA55D3', '#9932CC', '#BF3EFF'],
+        // 霓虹红色系
+        ['#FF0000', '#FF2400', '#FF3030', '#FF4040', '#FF1111', '#FF3333'],
+        // 霓虹蓝色系
+        ['#00BFFF', '#1E90FF', '#00B2EE', '#0000FF', '#0066FF', '#0033FF']
     ],
     
     // 渐变色配置
     hslConfig: {
         // HSL渐变的色相范围
         hueRanges: [
-            [0, 60],    // 红到黄
-            [180, 240], // 青到蓝
-            [300, 360], // 紫到红
-            [45, 105],  // 橙到绿
-            [270, 330]  // 紫到粉
+            [0, 60],     // 红到黄
+            [180, 240],  // 青到蓝
+            [300, 360],  // 紫到红
+            [45, 105],   // 橙到绿
+            [270, 330]   // 紫到粉
         ],
-        minSaturation: 85,  // 最小饱和度
+        minSaturation: 85,  // 提高最小饱和度
         maxSaturation: 100, // 最大饱和度
-        minLightness: 45,   // 最小亮度
-        maxLightness: 65    // 最大亮度
+        minLightness: 45,   // 调整最小亮度
+        maxLightness: 65    // 调整最大亮度
     }
 };
 
@@ -42,19 +38,19 @@ function getRandomColorScheme() {
 
 // 修改随机渐变颜色函数
 function randomGradientColor() {
-    // 70%概率使用HSL渐变，30%概率使用预设方案
-    if (Math.random() < 0.7) {
+    // 增加使用预设方案的概率到40%
+    if (Math.random() < 0.6) {
         // HSL渐变
         const hueRange = colorConfig.hslConfig.hueRanges[
             Math.floor(Math.random() * colorConfig.hslConfig.hueRanges.length)
         ];
         
         const baseHue = hueRange[0] + Math.random() * (hueRange[1] - hueRange[0]);
-        // 在选定范围内生成结束色相
-        const hueDiff = (Math.random() * 30 + 15) * (Math.random() < 0.5 ? 1 : -1);
+        // 减小色相差异以保持颜色协调
+        const hueDiff = (Math.random() * 20 + 10) * (Math.random() < 0.5 ? 1 : -1);
         const closeHue = (baseHue + hueDiff + 360) % 360;
         
-        // 随机生成饱和度和亮度，但保持两端一致以确保协调
+        // 使用更高的饱和度和亮度
         const saturation = colorConfig.hslConfig.minSaturation + 
             Math.random() * (colorConfig.hslConfig.maxSaturation - colorConfig.hslConfig.minSaturation);
         const lightness = colorConfig.hslConfig.minLightness + 
@@ -68,8 +64,8 @@ function randomGradientColor() {
     } else {
         // 预设方案
         const scheme = getRandomColorScheme();
-        // 随机选择一个子序列，确保颜色更协调
-        const length = Math.min(4, scheme.length);
+        // 随机选择连续的颜色以确保协调
+        const length = Math.min(3, scheme.length);
         const start = Math.floor(Math.random() * (scheme.length - length));
         const selectedColors = scheme.slice(start, start + length);
         
@@ -329,7 +325,7 @@ class Particle {
     }
 
     drawHeart() {
-        ctx.save(); // 保存当前状态
+        ctx.save(); // 保存当前态
         ctx.translate(this.x, this.y); // 平移到子位置
         ctx.scale(0.1, 0.1); // 放
         ctx.beginPath(); // 开始路径
@@ -403,7 +399,7 @@ class Firework {
             ));
         }
 
-        // 修改二级烟花颜色
+        // 修改���级烟花颜色
         if (config.secondaryEnabled && Math.random() < config.secondaryChance) {
             const count = Math.floor(Math.random() * 3) + 1;
             const secondaryScheme = getRandomColorScheme();
@@ -730,7 +726,7 @@ function animate() {
     requestAnimationFrame(animate); // 请求下一帧动画
 }
 
-// 在自动射和击事件之前添加检查函数
+// 在自动射和击事件之前添加查函数
 function getEnabledColorTypes() {
     const colorTypes = [];
     if (config.colorfulEnabled) colorTypes.push('colorful');
@@ -741,11 +737,15 @@ function getEnabledColorTypes() {
 // 添加一个变量来跟踪自动发射状态
 let autoLaunchEnabled = true;
 
-// 修改 createFirework 函数
+// 在文件顶部添加一个变量来跟踪最后一次点击时间
+let lastClickForTextTime = 0;
+
+// 修改 createFirework 函数，记录点击时间
 function createFirework(x, y) {
     const currentTime = Date.now();
     if (currentTime - lastClickTime < CLICK_COOLDOWN) return;
     lastClickTime = currentTime;
+    lastClickForTextTime = currentTime; // 记录最后一次点击时间
 
     if (fireworks.length + risingFireworks.length < config.maxFireworks + 5) {
         // 停止自动发射
@@ -976,7 +976,7 @@ settingsToggle.addEventListener('touchstart', (e) => {
 // 获取交互超时时间输入元素
 const interactionTimeoutInput = document.getElementById('interactionTimeout');
 
-// 在文件末尾添加新的制逻辑
+// 在文件末尾��加新的制逻辑
 const secondaryExplosionToggle = document.getElementById('secondaryExplosionToggle');
 const secondaryExplosionChance = document.getElementById('secondaryExplosionChance');
 const secondaryParticleRatio = document.getElementById('secondaryParticleRatio');
@@ -1000,6 +1000,12 @@ secondaryParticleRatio.addEventListener('input', (e) => {
 
 // 添加文字粒子生成函数
 function getTextParticles(text, x, y, fontSize, spacing) {
+    // 检查是否在点击后的5秒内
+    const currentTime = Date.now();
+    if (currentTime - lastClickForTextTime < 5000) {
+        return []; // 如果在5秒内，直接返回空数组，不生成文字
+    }
+
     // 计算安全区域(屏幕中心70%的区域)
     const safeArea = {
         minX: window.innerWidth * 0.15,
@@ -1093,7 +1099,7 @@ function getTextParticles(text, x, y, fontSize, spacing) {
 // 在文件顶部添加新的变量来跟踪文字位置
 const textPositionHistory = [];
 const TEXT_POSITION_COOLDOWN = 2000; // 文字位置冷却时间(毫秒)
-const TEXT_POSITION_THRESHOLD = 400; // 增加判断位置重复的距离阈值到400像素
+const TEXT_POSITION_THRESHOLD = 400; // 增加判断位置重复的距离阈到400像素
 
 // 获取新添加的控制元素
 const textEffectToggle = document.getElementById('textEffectToggle');
@@ -1122,10 +1128,9 @@ let currentTextIndex = 0;
 
 // 在文件顶部添加一个生成随机HSL颜色的函数
 function getRandomBrightColor() {
-    // 使用HSL颜色空间，保证颜色鲜艳
-    const hue = Math.random() * 360;  // 随机色相
-    const saturation = 80 + Math.random() * 20;  // 80-100的饱和度
-    const lightness = 50 + Math.random() * 10;   // 50-60的亮度
+    const hue = Math.random() * 360;
+    const saturation = 90 + Math.random() * 10;  // 90-100的饱和度
+    const lightness = 55 + Math.random() * 10;   // 55-65的亮度
     return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 

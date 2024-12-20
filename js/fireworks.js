@@ -497,7 +497,7 @@ class Firework {
                 secondary.vy += config.gravity * 1.5; // 增加重力效果
                 secondary.timer--;
 
-                // 到达指定时间后爆炸
+                // 到指定时间后爆炸
                 if (secondary.timer <= 0) {
                     secondary.hasExploded = true;
                     // 使用配置的粒子例
@@ -652,7 +652,7 @@ class RisingFirework {
             if (config.soundEnabled) {
                 const sound = explosionSound.cloneNode();
                 sound.volume = config.volume;
-                sound.play().catch(e => console.log('音频播放失败:', e));
+                sound.play().catch(e => console.log('音效播放失败:', e));
             }
             this.soundPlayed = true;
         }
@@ -820,7 +820,7 @@ canvas.addEventListener('click', (e) => {
     }
 });
 
-let autoLaunchInterval = null; // 自动发���间隔
+let autoLaunchInterval = null; // 自动发射间隔
 
 // 点击事件监听
 document.addEventListener('click', () => {
@@ -845,8 +845,29 @@ const heartEffectToggle = document.getElementById('heartEffectToggle');
 
 // 设置换事监听
 settingsToggle.addEventListener('click', () => {
-    const isHidden = settingsContent.style.display === 'none' || !settingsContent.style.display; // 判断置是否隐藏
-    settingsContent.style.display = isHidden ? 'block' : 'none'; // 切换示状
+    // 切换设置面板显示状态
+    const isHidden = settingsContent.style.display === 'none' || !settingsContent.style.display;
+    settingsContent.style.display = isHidden ? 'block' : 'none';
+    
+    // 重新触发动画
+    settingsToggle.classList.remove('rotating');
+    // 强制重绘
+    void settingsToggle.offsetWidth;
+    // 添加动画类
+    settingsToggle.classList.add('rotating');
+});
+
+// 单独处理动画结束事件
+settingsToggle.addEventListener('animationend', function(e) {
+    if (e.animationName === 'rotate360') {
+        this.classList.remove('rotating');
+    }
+});
+
+// 防止触摸设备上的多次触发
+settingsToggle.addEventListener('touchstart', (e) => {
+    e.preventDefault();
+    settingsToggle.click();
 });
 
 // 更新值显示
@@ -912,7 +933,7 @@ soundVolume.addEventListener('input', (e) => {
     updateValueDisplay(soundVolume, 'soundVolumeValue'); // 更新显示
 });
 
-// 窗口大小改变件监听
+// 窗大小改变件监听
 window.addEventListener('resize', () => {
     canvas.width = window.innerWidth; // 更新画布宽度
     canvas.height = window.innerHeight; // 更新画布高度
@@ -958,10 +979,10 @@ function resizeCanvas() {
 window.addEventListener('resize', resizeCanvas);
 window.addEventListener('orientationchange', resizeCanvas);
 
-// 初始化时调用次
+// 初始化时用次
 resizeCanvas();
 
-// 添加阻止默认滚动行为
+// 添加止默认滚动行为
 document.body.addEventListener('touchmove', (e) => {
     if (e.target === canvas) {
         e.preventDefault();
@@ -1007,7 +1028,7 @@ function getTextParticles(text, x, y, fontSize, spacing) {
     // 检查是否在点击后的5秒内
     const currentTime = Date.now();
     if (currentTime - lastClickForTextTime < 5000) {
-        return []; // 如果在5秒内，直接返回空数组，不生成文字
+        return []; // 如果在5秒内，直接返回空组，不生成文字
     }
 
     // 计算安全区域(屏幕中心70%的区域)

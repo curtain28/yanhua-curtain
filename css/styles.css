@@ -12,59 +12,191 @@ canvas {
     position: fixed;
     top: 20px;
     right: 20px;
-    background: rgba(0, 0, 0, 0.7);
-    border-radius: 8px;
     z-index: 1000;
+    font-family: "Microsoft YaHei", sans-serif;
+    max-height: 90vh;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
 }
 
+/* 设置按钮基础样式 */
 .settings-toggle {
-    background: none;
-    border: none;
+    position: relative;
+    z-index: 1001;
+    background: rgba(0, 0, 0, 0.6);
+    border: 2px solid rgba(255, 255, 255, 0.2);
     color: white;
-    font-size: 24px;
+    padding: 0;
+    border-radius: 50%;
     cursor: pointer;
-    padding: 8px;
-    align-self: flex-end;
+    font-size: 20px;
+    width: 45px;
+    height: 45px;
+    transition: background-color 0.3s ease;
+    transform-origin: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* 只在点击时旋转 */
+.settings-toggle.rotating {
+    animation: rotate360 0.6s ease;
+}
+
+/* hover时只改变背景色 */
+.settings-toggle:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* 旋转动画定义 */
+@keyframes rotate360 {
+    0% {
+        transform: rotate(0);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .settings-content {
     display: none;
+    background: rgba(0, 0, 0, 0.85);
+    border-radius: 15px;
     padding: 15px;
-    color: white;
-    width: 100%;
-    box-sizing: border-box;
+    margin-top: 10px;
+    width: 280px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow-y: auto;
+    max-height: calc(90vh - 70px);
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+    position: absolute;
+    top: 55px;
+    right: 0;
+}
+
+.settings-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.settings-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.settings-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.settings-group {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 12px 0;
+    margin-bottom: 12px;
+}
+
+.settings-group:last-child {
+    border-bottom: none;
+    margin-bottom: 0;
+}
+
+.settings-group-title {
+    color: #fff;
+    font-size: 14px;
+    margin-bottom: 12px;
+    font-weight: bold;
 }
 
 .setting-item {
-    margin: 10px 0;
-    display: flex;
-    align-items: center;
+    margin-bottom: 12px;
+    color: #fff;
+}
+
+.setting-item:last-child {
+    margin-bottom: 0;
 }
 
 .setting-item label {
-    width: 120px;
-    flex-shrink: 0;
+    display: block;
+    margin-bottom: 6px;
+    font-size: 13px;
+    opacity: 0.9;
+}
+
+.setting-item input[type="range"] {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+.setting-item input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #fff;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.setting-item input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.1);
+}
+
+.setting-item span {
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 12px;
+    opacity: 0.8;
+    min-width: 30px;
+}
+
+.setting-item input[type="checkbox"] {
+    position: relative;
+    width: 40px;
+    height: 20px;
+    -webkit-appearance: none;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.setting-item input[type="checkbox"]:checked {
+    background: #4CAF50;
+}
+
+.setting-item input[type="checkbox"]::before {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    top: 2px;
+    left: 2px;
+    background: #fff;
+    transition: all 0.3s ease;
+}
+
+.setting-item input[type="checkbox"]:checked::before {
+    left: 22px;
 }
 
 .sound-options {
     display: flex;
     align-items: center;
-}
-
-.sound-options label {
-    margin-right: 10px;
-}
-
-.sound-options input[type="checkbox"] {
-    margin-right: 5px;
+    gap: 10px;
 }
 
 .sound-options input[type="range"] {
-    margin-left: 10px;
-    margin-right: 5px;
+    width: 100px;
 }
 
 /* Media query for smaller screens */
@@ -85,63 +217,74 @@ canvas {
 /* 添加移动端样式 */
 @media screen and (max-width: 1450px) {
     .settings-panel {
-        width: 90%;
+        width: auto;
         max-width: none;
-        right: 5%;
+        right: 10px;
         font-size: 14px;
         top: 10px;
     }
 
     .settings-content {
-        padding: 10px;
-        transform: scale(0.6);
-        transform-origin: top left;
+        width: 240px;
+        padding: 12px;
+        transform: none;
+        max-height: 80vh;
+    }
+
+    .settings-group {
+        padding: 10px 0;
+        margin-bottom: 10px;
     }
 
     .setting-item {
-        margin: 8px 0;
-        flex-direction: column;
-        align-items: flex-start;
+        margin-bottom: 10px;
     }
 
     .setting-item label {
-        margin-bottom: 5px;
+        font-size: 12px;
+        margin-bottom: 4px;
     }
 
     .setting-item input[type="range"] {
-        width: 100%;
+        height: 4px;
     }
 
-    #settings-toggle {
-        width: 40px;
-        height: 40px;
-        font-size: 20px;
-        right: 10px;
-        top: 10px;
+    .setting-item input[type="range"]::-webkit-slider-thumb {
+        width: 14px;
+        height: 14px;
     }
 
-    #start-prompt {
-        font-size: 16px;
-        padding: 10px;
-        width: 80%;
-        left: 10%;
+    .setting-item input[type="checkbox"] {
+        width: 36px;
+        height: 18px;
+    }
+
+    .setting-item input[type="checkbox"]::before {
+        width: 14px;
+        height: 14px;
+    }
+
+    .setting-item input[type="checkbox"]:checked::before {
+        left: 20px;
     }
 }
 
 /* 添加更小屏幕的样式 */
 @media screen and (max-width: 480px) {
-    .settings-panel {
-        width: 95%;
-        right: 2.5%;
-        font-size: 12px;
+    .settings-content {
+        width: 220px;
+        padding: 10px;
+    }
+
+    .settings-group-title {
+        font-size: 13px;
     }
 
     .setting-item label {
-        font-size: 12px;
+        font-size: 11px;
     }
 
-    #start-prompt {
-        font-size: 14px;
-        padding: 8px;
+    .setting-item span {
+        font-size: 11px;
     }
 } 

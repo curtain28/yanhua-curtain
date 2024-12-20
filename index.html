@@ -33,78 +33,97 @@
     <div id="settings-panel" class="settings-panel">
         <button id="settings-toggle" class="settings-toggle">⚙️</button>
         <div class="settings-content">
-            <div class="setting-item">
-                <label>粒子数量:</label>
-                <input type="range" id="particleCount" min="100" max="2000" value="500" step="100">
-                <span id="particleCountValue">500</span>
+            <!-- 基础设置组 -->
+            <div class="settings-group">
+                <div class="settings-group-title">基础设置</div>
+                <div class="setting-item">
+                    <label>粒子数量:</label>
+                    <input type="range" id="particleCount" min="100" max="2000" value="500" step="100">
+                    <span id="particleCountValue">500</span>
+                </div>
+                <div class="setting-item">
+                    <label>发射间隔(ms):</label>
+                    <input type="range" id="launchInterval" min="50" max="1000" value="200" step="50">
+                    <span id="launchIntervalValue">200</span>
+                </div>
+                <div class="setting-item">
+                    <label>最大烟花数量:</label>
+                    <input type="range" id="maxFireworks" min="5" max="50" value="20" step="5">
+                    <span id="maxFireworksValue">20</span>
+                </div>
             </div>
-            <div class="setting-item">
-                <label>发射间隔(ms):</label>
-                <input type="range" id="launchInterval" min="50" max="1000" value="200" step="50">
-                <span id="launchIntervalValue">200</span>
+
+            <!-- 动画效果组 -->
+            <div class="settings-group">
+                <div class="settings-group-title">动画效果</div>
+                <div class="setting-item">
+                    <label>上升速度:</label>
+                    <input type="range" id="risingSpeed" min="5" max="50" value="10" step="1">
+                    <span id="risingSpeedValue">10</span>
+                </div>
+                <div class="setting-item">
+                    <label>粒子消散速度:</label>
+                    <input type="range" id="fadeSpeed" min="1" max="10" value="5" step="0.5">
+                    <span id="fadeSpeedValue">5</span>
+                </div>
+                <div class="setting-item">
+                    <label>粒子重力效果:</label>
+                    <input type="range" id="gravity" min="0.01" max="1" value="0.05" step="0.01">
+                    <span id="gravityValue">0.05</span>
+                </div>
             </div>
-            <div class="setting-item">
-                <label>上升速度:</label>
-                <input type="range" id="risingSpeed" min="5" max="50" value="10" step="1">
-                <span id="risingSpeedValue">10</span>
+
+            <!-- 特殊效果组 -->
+            <div class="settings-group">
+                <div class="settings-group-title">特殊效果</div>
+                <div class="setting-item">
+                    <label>爱心效果:</label>
+                    <input type="checkbox" id="heartEffectToggle" checked>
+                </div>
+                <div class="setting-item">
+                    <label>二级爆炸效果:</label>
+                    <input type="checkbox" id="secondaryExplosionToggle" checked>
+                </div>
+                <div class="setting-item">
+                    <label>二级爆炸概率(%):</label>
+                    <input type="range" id="secondaryExplosionChance" min="10" max="100" value="30" step="10">
+                    <span id="secondaryExplosionChanceValue">30</span>
+                </div>
+                <div class="setting-item">
+                    <label>二级粒子比例(%):</label>
+                    <input type="range" id="secondaryParticleRatio" min="10" max="50" value="20" step="5">
+                    <span id="secondaryParticleRatioValue">20</span>
+                </div>
             </div>
-            <div class="setting-item">
-                <label>粒子消散速度:</label>
-                <input type="range" id="fadeSpeed" min="1" max="10" value="5" step="0.5">
-                <span id="fadeSpeedValue">5</span>
+
+            <!-- 文字效果组 -->
+            <div class="settings-group">
+                <div class="settings-group-title">文字效果</div>
+                <div class="setting-item">
+                    <label>文字效果:</label>
+                    <input type="checkbox" id="textEffectToggle" checked>
+                </div>
+                <div class="setting-item">
+                    <label>文字生成概率(%):</label>
+                    <input type="range" id="textProbability" min="1" max="50" value="10" step="1">
+                    <span id="textProbabilityValue">10</span>
+                </div>
+                <div class="setting-item">
+                    <label>文字大小:</label>
+                    <input type="range" id="mainFontSize" min="10" max="200" value="120" step="10">
+                    <span id="mainFontSizeValue">120</span>
+                </div>
             </div>
-            <div class="setting-item">
-                <label>最大烟花数量:</label>
-                <input type="range" id="maxFireworks" min="5" max="50" value="20" step="5">
-                <span id="maxFireworksValue">20</span>
-            </div>
-            <div class="setting-item">
-                <label>粒子重力效果:</label>
-                <input type="range" id="gravity" min="0.01" max="1" value="0.05" step="0.01">
-                <span id="gravityValue">0.05</span>
-            </div>
-            <div class="setting-item">
-                <label>交互超时(ms):</label>
-                <input type="range" id="interactionTimeout" min="500" max="5000" value="3000" step="500">
-                <span id="interactionTimeoutValue">3000</span>
-            </div>
-            <div class="setting-item sound-options">
-                <label>音效:</label>
-                <input type="checkbox" id="soundToggle" checked> 开关
-                <input type="range" id="soundVolume" min="0" max="1" value="0.5" step="0.1">
-                <span id="soundVolumeValue">0.5</span>
-            </div>
-            <div class="setting-item">
-                <label>爱心效果:</label>
-                <input type="checkbox" id="heartEffectToggle" checked>
-            </div>
-            <div class="setting-item">
-                <label>二级爆炸效果:</label>
-                <input type="checkbox" id="secondaryExplosionToggle" checked>
-            </div>
-            <div class="setting-item">
-                <label>二级爆炸概率(%):</label>
-                <input type="range" id="secondaryExplosionChance" min="10" max="100" value="30" step="10">
-                <span id="secondaryExplosionChanceValue">30</span>
-            </div>
-            <div class="setting-item">
-                <label>二级粒子比例(%):</label>
-                <input type="range" id="secondaryParticleRatio" min="10" max="50" value="20" step="5">
-                <span id="secondaryParticleRatioValue">20</span>
-            </div>
-            <div class="setting-item">
-                <label>文字效果:</label>
-                <input type="checkbox" id="textEffectToggle" checked>
-            </div>
-            <div class="setting-item">
-                <label>文字生成概率(%):</label>
-                <input type="range" id="textProbability" min="1" max="50" value="10" step="1">
-                <span id="textProbabilityValue">10</span>
-            </div>
-            <div class="setting-item">
-                <label>文字大小:</label>
-                <input type="range" id="mainFontSize" min="10" max="200" value="120" step="10">
-                <span id="mainFontSizeValue">120</span>
+
+            <!-- 声音设置组 -->
+            <div class="settings-group">
+                <div class="settings-group-title">声音设置</div>
+                <div class="setting-item sound-options">
+                    <label>音效:</label>
+                    <input type="checkbox" id="soundToggle" checked>
+                    <input type="range" id="soundVolume" min="0" max="1" value="0.5" step="0.1">
+                    <span id="soundVolumeValue">0.5</span>
+                </div>
             </div>
         </div>
     </div>

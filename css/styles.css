@@ -13,14 +13,14 @@ canvas {
     top: 20px;
     right: 20px;
     z-index: 1000;
-    font-family: "Microsoft YaHei", sans-serif;
+    font-family: "Microsoft YaHei", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     max-height: 90vh;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
 }
 
-/* 设置按钮基础样式 */
+/* 设置按钮样式 */
 .settings-toggle {
     position: absolute;
     right: 15px;
@@ -28,90 +28,71 @@ canvas {
     z-index: 1001;
     background: transparent;
     border: none;
-    color: white;
-    padding: 0;
+    color: rgba(255, 255, 255, 0.8);
+    padding: 8px;
     cursor: pointer;
-    font-size: 20px;
-    width: 24px;
-    height: 24px;
+    font-size: 18px;
+    width: 36px;
+    height: 36px;
     display: flex;
     align-items: center;
     justify-content: center;
     user-select: none;
     -webkit-user-select: none;
+    transition: color 0.3s ease;
 }
 
-/* 只在点击时旋转 */
+.settings-toggle:hover {
+    color: #ffffff;
+    transform: translateY(-1px);
+}
+
 .settings-toggle.rotating {
     animation: rotate360 0.6s ease;
 }
 
-/* hover时只改变背景色 */
-.settings-toggle:hover {
-    color: rgba(255, 255, 255, 0.8);
-}
-
-/* 旋转动画定义 */
-@keyframes rotate360 {
-    0% {
-        transform: rotate(0);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
-}
-
+/* 设置内容面板样式 */
 .settings-content {
     display: none;
-    background: rgba(0, 0, 0, 0.85);
-    border-radius: 15px;
-    padding: 15px;
+    background: rgba(28, 28, 28, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 16px;
+    padding: 20px;
     margin-top: 0;
-    width: 280px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    width: 300px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     border: 1px solid rgba(255, 255, 255, 0.1);
     overflow-y: auto;
     max-height: calc(90vh - 70px);
-    scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
     position: absolute;
     top: 0;
     right: 0;
 }
 
-.settings-content::-webkit-scrollbar {
-    width: 6px;
-}
-
-.settings-content::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.settings-content::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.3);
-    border-radius: 3px;
-}
-
+/* 设置组样式 */
 .settings-group {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    padding: 12px 0;
-    margin-bottom: 12px;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
 }
 
 .settings-group:last-child {
-    border-bottom: none;
     margin-bottom: 0;
 }
 
 .settings-group-title {
     color: #fff;
-    font-size: 14px;
-    margin-bottom: 12px;
-    font-weight: bold;
+    font-size: 15px;
+    margin-bottom: 16px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
+/* 设置项样式 */
 .setting-item {
-    margin-bottom: 12px;
+    margin-bottom: 16px;
     color: #fff;
 }
 
@@ -121,49 +102,57 @@ canvas {
 
 .setting-item label {
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
     font-size: 13px;
-    opacity: 0.9;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 500;
 }
 
+/* 滑块样式 */
 .setting-item input[type="range"] {
     width: 100%;
-    height: 6px;
+    height: 4px;
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 3px;
+    border-radius: 2px;
     outline: none;
     -webkit-appearance: none;
+    transition: all 0.2s ease;
 }
 
 .setting-item input[type="range"]::-webkit-slider-thumb {
     -webkit-appearance: none;
-    width: 16px;
-    height: 16px;
+    width: 18px;
+    height: 18px;
     background: #fff;
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.2s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
 }
 
 .setting-item input[type="range"]::-webkit-slider-thumb:hover {
-    transform: scale(1.1);
+    transform: scale(1.2);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
+/* 数值显示样式 */
 .setting-item span {
     display: inline-block;
-    margin-left: 10px;
+    margin-left: 12px;
     font-size: 12px;
-    opacity: 0.8;
+    color: rgba(255, 255, 255, 0.6);
     min-width: 30px;
+    font-weight: 500;
 }
 
+/* 开关样式 */
 .setting-item input[type="checkbox"] {
     position: relative;
-    width: 40px;
-    height: 20px;
+    width: 44px;
+    height: 24px;
     -webkit-appearance: none;
     background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -175,17 +164,36 @@ canvas {
 .setting-item input[type="checkbox"]::before {
     content: '';
     position: absolute;
-    width: 16px;
-    height: 16px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
     top: 2px;
     left: 2px;
     background: #fff;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
 .setting-item input[type="checkbox"]:checked::before {
     left: 22px;
+}
+
+/* 滚动条样式 */
+.settings-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.settings-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.settings-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+}
+
+.settings-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
 }
 
 .sound-options {
@@ -285,5 +293,15 @@ canvas {
 
     .setting-item span {
         font-size: 11px;
+    }
+}
+
+/* 旋转动画定义 */
+@keyframes rotate360 {
+    0% {
+        transform: rotate(0);
+    }
+    100% {
+        transform: rotate(360deg);
     }
 } 
